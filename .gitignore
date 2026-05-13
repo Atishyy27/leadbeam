@@ -1,0 +1,10 @@
+node_modules/
+mock-api/node_modules/
+mock-api/db.json
+mock-api/data/businesses.json
+mock-api/data/categories.json
+mock-api/data/routes.json
+.DS_Store
+
+# Internal evaluation doc - DO NOT include when sharing with candidates
+INTERNAL_EVALUATION.md
