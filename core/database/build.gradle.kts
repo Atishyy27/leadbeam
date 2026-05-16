@@ -28,10 +28,12 @@ android {
 }
 
 dependencies {
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.ui)
-    implementation(libs.androidx.material3)
-
+    implementation(project(":core:common"))
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
+    
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 }

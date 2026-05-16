@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.fieldflow,core.datastore"
+    namespace = "com.fieldflow.core.datastore"
     compileSdk = 34
 
     defaultConfig {
@@ -28,6 +28,7 @@ android {
 }
 
 dependencies {
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
     implementation(libs.androidx.material3)
