@@ -2,12 +2,11 @@ package com.fieldflow.feature.auth.data.repository
 
 import com.fieldflow.core.database.dao.UserDao
 import com.fieldflow.core.database.entity.UserEntity
-import com.fieldflow.core.datastore.PreferencesManager
+import com.fieldflow.core.database.PreferencesManager
 import com.fieldflow.core.network.api.ApiService
 import com.fieldflow.core.network.model.LoginRequest
 import com.fieldflow.feature.auth.domain.model.User
 import com.fieldflow.feature.auth.domain.repository.AuthRepository
-import nobility.core.common.result.Result // If using custom wrapper, else standard Kotlin Result below
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -31,35 +30,42 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun login(email: String, password: String): Result<User> {
         return try {
             val response = apiService.login(LoginRequest(email, password))
-            val tokenData = response.data
+            val apiResponse = response.body() // ✅ Get the ApiResponse wrapper
+            val tokenData = apiResponse?.data // ✅ Now access .data
 
-            if (response.status == 200 && tokenData != null) {
-                // 1. Secure token persistence inside DataStore
+            if (apiResponse?.status == 200 && tokenData != null) {
                 preferencesManager.saveTokens(tokenData.accessToken, tokenData.refreshToken)
 
-                // 2. Immediate sequence fetch of profile updates from server
                 val profileResponse = apiService.getUserProfile()
-                val profile = profileResponse.data
+                val profileApiResponse = profileResponse.body() // ✅ Get ApiResponse
+                val profile = profileApiResponse?.data // ✅ Access .data
 
-                if (profileResponse.status == 200 && profile != null) {
-                    // 3. Atomically overwrite cache tracking boundaries
+                if (profileApiResponse?.status == 200 && profile != null) {
                     val userEntity = UserEntity(
                         id = profile.id,
-                        email = profile.email,
-                        firstName = profile.firstName,
-                        lastName = profile.lastName,
-                        company = profile.company,
-                        title = profile.title,
-                        territory = profile.territory
+                        email = profile.email ?: "",
+                        firstName = profile.firstName ?: "",
+                        lastName = profile.lastName ?: "",
+                        company = profile.company ?: "",
+                        title = profile.title ?: "",
+                        territory = profile.territory ?: ""
                     )
                     userDao.insertOrUpdateUser(userEntity)
 
-                    Result.success(User(profile.id, profile.email, profile.firstName, profile.lastName, profile.company, profile.title, profile.territory))
+                    Result.success(User(
+                        id = profile.id,
+                        email = profile.email ?: "",
+                        firstName = profile.firstName ?: "",
+                        lastName = profile.lastName ?: "",
+                        company = profile.company ?: "",
+                        title = profile.title ?: "",
+                        territory = profile.territory ?: ""
+                    ))
                 } else {
-                    Result.failure(Exception(profileResponse.message))
+                    Result.failure(Exception(profileApiResponse?.message ?: "Profile fetch failed"))
                 }
             } else {
-                Result.failure(Exception(response.message))
+                Result.failure(Exception(apiResponse?.message ?: "Login failed"))
             }
         } catch (e: Exception) {
             Result.failure(e)

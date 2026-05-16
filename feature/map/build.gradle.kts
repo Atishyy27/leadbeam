@@ -1,3 +1,4 @@
+// feature/map/build.gradle.kts
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
@@ -32,14 +33,20 @@ dependencies {
     implementation(project(":core:network"))
     implementation(project(":core:database"))
 
-    // Maps Ecosystem Components
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.gson)
+
     implementation(libs.maps.compose)
     implementation(libs.maps.compose.utils)
 
-    // UI & DI Foundation
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
     implementation(libs.androidx.material3)
+    
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
+    
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
+    implementation(libs.hilt.navigation.compose)
 }
