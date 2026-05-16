@@ -1,28 +1,35 @@
 package com.fieldflow.core.network.interceptor
 
-import com.fieldflow.core.datastore.PreferencesManager
+import com.fieldflow.core.database.PreferencesManager
 import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
 import okhttp3.Response
 import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
 class AuthInterceptor @Inject constructor(
     private val preferencesManager: PreferencesManager
 ) : Interceptor {
-
     override fun intercept(chain: Interceptor.Chain): Response {
+        val request = chain.request()
+        
+        // Skip auth for login and refresh endpoints
+        if (request.url.encodedPath.contains("/auth/login") ||
+            request.url.encodedPath.contains("/auth/token/refresh")
+        ) {
+            return chain.proceed(request)
+        }
+
+        // Add token to request
         val token = runBlocking { preferencesManager.getAccessToken() }
         
-        val request = chain.request().newBuilder().apply {
-            if (!token.isNullHeader()) {
-                addHeader("Authorization", "Bearer $token")
-            }
-        }.build()
+        val authenticatedRequest = if (token != null) {
+            request.newBuilder()
+                .addHeader("Authorization", "Bearer $token")
+                .build()
+        } else {
+            request
+        }
 
-        return chain.proceed(request)
+        return chain.proceed(authenticatedRequest)
     }
-
-    private fun String?.isNullHeader(): Boolean = this.isNullOrBlank()
 }

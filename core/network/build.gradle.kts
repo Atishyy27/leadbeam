@@ -28,8 +28,10 @@ android {
 }
 
 dependencies {
-    implementation(project(":core:datastore"))
-    
+    // implementation(project(":core:datastore"))
+    api(project(":core:datastore"))
+    implementation(project(":core:common"))
+    implementation(project(":core:database")) 
     implementation(libs.retrofit)
     implementation(libs.retrofit.gson)
     implementation(libs.okhttp.logging)

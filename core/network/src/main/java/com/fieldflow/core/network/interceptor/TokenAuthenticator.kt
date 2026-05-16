@@ -1,76 +1,60 @@
 package com.fieldflow.core.network.interceptor
 
-import com.fieldflow.core.datastore.PreferencesManager
+import com.fieldflow.core.database.PreferencesManager
 import com.fieldflow.core.network.api.TokenRefreshService
 import com.fieldflow.core.network.model.RefreshTokenRequest
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.runBlocking
 import okhttp3.Authenticator
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.Route
 import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
 class TokenAuthenticator @Inject constructor(
     private val preferencesManager: PreferencesManager,
     private val tokenRefreshService: TokenRefreshService
 ) : Authenticator {
-
-    private val refreshMutex = Mutex()
-
+    
     override fun authenticate(route: Route?, response: Response): Request? {
-        // Guard rail: Only intercept actual 401 Unauthorized errors
-        if (response.code != 401) return null
+        // If we've already tried to refresh, give up
+        if (response.request.header("Authorization-Retry") != null) {
+            return null
+        }
 
         return runBlocking {
-            refreshMutex.withLock {
-                val currentLocalToken = preferencesManager.getAccessToken()
-                val requestHeaderToken = response.request.header("Authorization")
-                    ?.removePrefix("Bearer ")
+            val refreshToken = preferencesManager.getRefreshToken() ?: return@runBlocking null
 
-                // Race Condition Check: If the token in the failing request doesn't match
-                // our local token, another concurrent thread already completed the refresh.
-                if (requestHeaderToken != currentLocalToken) {
-                    return@withLock response.request.newBuilder()
-                        .header("Authorization", "Bearer $currentLocalToken")
-                        .build()
-                }
+            try {
+                // Call refresh API with proper data class
+                val tokenResponse = tokenRefreshService.refreshToken(
+                    RefreshTokenRequest(refreshToken)
+                )
 
-                // If they match, we are the first thread to hit the wall. Execute refresh.
-                val currentRefreshToken = preferencesManager.getRefreshToken()
-                if (currentRefreshToken.isNullOrBlank()) {
-                    preferencesManager.clearTokens()
-                    return@withLock null
-                }
-
-                try {
-                    val refreshResponse = tokenRefreshService.refreshToken(
-                        RefreshTokenRequest(currentRefreshToken)
-                    )
-
-                    val newTokens = refreshResponse.data
-                    if (refreshResponse.status == 200 && newTokens != null) {
+                // Check if response was successful
+                if (tokenResponse.isSuccessful) {
+                    val newTokens = tokenResponse.body()?.data
+                    if (newTokens != null) {
+                        // Save new tokens
                         preferencesManager.saveTokens(
-                            accessToken = newTokens.accessToken,
-                            refreshToken = newTokens.refreshToken
+                            newTokens.accessToken,
+                            newTokens.refreshToken
                         )
 
-                        // Retry the failed request with the fresh token
+                        // Retry request with new token
                         response.request.newBuilder()
                             .header("Authorization", "Bearer ${newTokens.accessToken}")
+                            .header("Authorization-Retry", "true")
                             .build()
-                    } else {
-                        // Refresh token was rejected or expired on server side
-                        preferencesManager.clearTokens()
-                        null
-                    }
-                } catch (e: Exception) {
-                    // Network crash during refresh handshake
+                    } else null
+                } else {
+                    // Refresh failed, clear tokens
+                    preferencesManager.clearTokens()
                     null
                 }
+            } catch (e: Exception) {
+                // Network error or parsing error
+                preferencesManager.clearTokens()
+                null
             }
         }
     }
