@@ -49,17 +49,28 @@ android {
 }
 
 dependencies {
+    // Feature Slices
     implementation(project(":feature:auth"))
     implementation(project(":feature:map"))
+    implementation(project(":feature:business"))
+    implementation(project(":feature:route"))
+    implementation(project(":feature:profile"))
+    
+    // Core Infra
     implementation(project(":core:common"))
     implementation(project(":core:ui"))
+    implementation(project(":core:network"))
+    implementation(project(":core:database"))
+    implementation(project(":core:datastore"))
 
+    // Compose Foundation
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.ui.tooling.preview)
     debugImplementation(libs.androidx.ui.tooling)
 
+    // DI
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
