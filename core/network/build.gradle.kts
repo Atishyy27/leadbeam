@@ -28,10 +28,15 @@ android {
 }
 
 dependencies {
+    implementation(project(":core:datastore"))
+    
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.gson)
+    implementation(libs.okhttp.logging)
+    
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
     implementation(libs.androidx.material3)
-
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 }
