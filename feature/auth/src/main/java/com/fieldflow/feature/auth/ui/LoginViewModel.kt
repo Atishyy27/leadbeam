@@ -18,6 +18,7 @@ import javax.inject.Inject
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val loginUseCase: LoginUseCase
+    private val authRepository: com.fieldflow.feature.auth.domain.repository.AuthRepository // Add this
 ) : ViewModel() {
 
     var emailInput by mutableStateOf("")
@@ -25,6 +26,14 @@ class LoginViewModel @Inject constructor(
 
     var passwordInput by mutableStateOf("")
         private set
+
+    init {
+        viewModelScope.launch {
+            if (authRepository.isUserLoggedIn()) {
+                _uiEvents.send(LoginUiEvent.NavigateToMap)
+            }
+        }
+    }
 
     private val _uiState = MutableStateFlow<LoginUiState>(LoginUiState.Idle)
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
