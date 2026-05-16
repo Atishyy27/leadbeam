@@ -1,3 +1,4 @@
+// core/database/build.gradle.kts
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
@@ -30,6 +31,8 @@ android {
 dependencies {
     implementation(project(":core:common"))
     implementation("androidx.datastore:datastore-preferences:1.0.0")
+    implementation(platform(libs.androidx.compose.bom))
+    implementation("androidx.compose.runtime:runtime")
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
     ksp(libs.room.compiler)

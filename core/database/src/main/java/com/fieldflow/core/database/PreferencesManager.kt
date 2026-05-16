@@ -1,4 +1,4 @@
-package com.fieldflow.core.datastore
+package com.fieldflow.core.database
 
 import android.content.Context
 import androidx.datastore.core.DataStore
@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -18,34 +19,39 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 class PreferencesManager @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
-    private object PreferencesKeys {
-        val ACCESS_TOKEN = stringPreferencesKey("access_token")
-        val REFRESH_TOKEN = stringPreferencesKey("refresh_token")
+    private val dataStore = context.dataStore
+
+    companion object {
+        private val ACCESS_TOKEN = stringPreferencesKey("access_token")
+        private val REFRESH_TOKEN = stringPreferencesKey("refresh_token")
+        private val USER_ID = stringPreferencesKey("user_id")
     }
 
+    // Token operations
     suspend fun saveTokens(accessToken: String, refreshToken: String) {
-        context.dataStore.edit { prefs ->
-            prefs[PreferencesKeys.ACCESS_TOKEN] = accessToken
-            prefs[PreferencesKeys.REFRESH_TOKEN] = refreshToken
+        dataStore.edit { prefs ->
+            prefs[ACCESS_TOKEN] = accessToken
+            prefs[REFRESH_TOKEN] = refreshToken
         }
     }
 
     suspend fun getAccessToken(): String? {
-        return context.dataStore.data.map { prefs ->
-            prefs[PreferencesKeys.ACCESS_TOKEN]
-        }.first()
+        return dataStore.data.map { it[ACCESS_TOKEN] }.first()
     }
 
     suspend fun getRefreshToken(): String? {
-        return context.dataStore.data.map { prefs ->
-            prefs[PreferencesKeys.REFRESH_TOKEN]
-        }.first()
+        return dataStore.data.map { it[REFRESH_TOKEN] }.first()
     }
 
     suspend fun clearTokens() {
-        context.dataStore.edit { prefs ->
-            prefs.remove(PreferencesKeys.ACCESS_TOKEN)
-            prefs.remove(PreferencesKeys.REFRESH_TOKEN)
+        dataStore.edit { prefs ->
+            prefs.remove(ACCESS_TOKEN)
+            prefs.remove(REFRESH_TOKEN)
+            prefs.remove(USER_ID)
         }
+    }
+
+    fun getAccessTokenFlow(): Flow<String?> {
+        return dataStore.data.map { it[ACCESS_TOKEN] }
     }
 }
