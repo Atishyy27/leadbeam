@@ -8,11 +8,15 @@
     <application
         android:name=".FieldFlowApp"
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
         android:label="FieldFlow"
         android:supportsRtl="true"
+        android:usesCleartextTraffic="true"
         android:theme="@android:style/Theme.Material.Light.NoActionBar">
-        
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSy_FAKE_KEY_FOR_TESTING" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true">
