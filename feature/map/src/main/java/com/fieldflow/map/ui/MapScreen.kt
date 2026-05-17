@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Search
@@ -11,24 +12,24 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.fieldflow.feature.map.domain.model.MapBusinessItem
-import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MapScreen(
     viewModel: MapViewModel,
+    onNavigateBack: () -> Unit = {}, // Added for your Back Arrow snippet
     onNavigateToList: () -> Unit = {},
     onBusinessClick: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val businesses by viewModel.visibleBusinesses.collectAsState()
-    val scope = rememberCoroutineScope()
     var selectedBusiness by remember { mutableStateOf<MapBusinessItem?>(null) }
     var isLocationGranted by remember { mutableStateOf(false) }
 
@@ -65,24 +66,20 @@ fun MapScreen(
                 myLocationButtonEnabled = true
             )
         ) {
-            Clustering(
-                items = businesses,
-                onClusterClick = { cluster ->
-                    scope.launch {
-                        val zoomLevel = cameraPositionState.position.zoom + 2f
-                        cameraPositionState.animate(
-                            update = CameraUpdateFactory.newLatLngZoom(cluster.position, zoomLevel),
-                            durationMs = 500
-                        )
+            // Replaced Clustering with standard Markers to support a11y contentDescriptions
+            businesses.forEach { business ->
+                Marker(
+                    state = MarkerState(position = business.position), // assuming MapBusinessItem has position from ClusterItem
+                    title = business.businessName,
+                    snippet = business.category,
+                    contentDescription = "${business.businessName}, ${business.category}", // A11y description
+                    onClick = {
+                        selectedBusiness = business
+                        onBusinessClick(business.leadbeamId)
+                        false
                     }
-                    true
-                },
-                onClusterItemClick = { business ->
-                    selectedBusiness = business
-                    onBusinessClick(business.leadbeamId) // Added the explicit business click handler
-                    false
-                }
-            )
+                )
+            }
         }
 
         // 2. STATUS INDICATORS (Loading & Offline)
@@ -125,12 +122,19 @@ fun MapScreen(
                 .fillMaxWidth()
                 .padding(top = 48.dp, start = 16.dp, end = 16.dp)
         ) {
-            // Added a Row to hold the SearchBar and List Button side-by-side
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+                // Applied your Nav Icon snippet here
+                IconButton(
+                    onClick = onNavigateBack,
+                    modifier = Modifier.semantics { contentDescription = "Go back" }
+                ) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null) // description is in semantics
+                }
+
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { viewModel.updateSearchQuery(it) },
@@ -142,24 +146,25 @@ fun MapScreen(
                         focusedIndicatorColor = MaterialTheme.colorScheme.primary,
                         unfocusedIndicatorColor = MaterialTheme.colorScheme.outline
                     ),
-                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search icon") },
                     trailingIcon = {
                         if (searchQuery.isNotEmpty()) {
                             IconButton(onClick = { viewModel.updateSearchQuery("") }) {
-                                Icon(Icons.Default.Clear, contentDescription = "Clear")
+                                Icon(Icons.Default.Clear, contentDescription = "Clear search")
                             }
                         }
                     }
                 )
 
-                // The List Navigation Button
+                // List Navigation Button
                 IconButton(
                     onClick = onNavigateToList,
+                    modifier = Modifier.semantics { contentDescription = "View businesses as list" },
                     colors = IconButtonDefaults.iconButtonColors(
                         containerColor = MaterialTheme.colorScheme.surface
                     )
                 ) {
-                    Icon(Icons.Filled.List, contentDescription = "View as list")
+                    Icon(Icons.Filled.List, contentDescription = null)
                 }
             }
 
@@ -203,12 +208,16 @@ fun MapScreen(
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
                 
+                // Applied your Action Button semantics here
                 Button(
                     onClick = { 
                         viewModel.addBusinessToRoute(business)
                         selectedBusiness = null 
                     },
-                    modifier = Modifier.fillMaxWidth().height(48.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp)
+                        .semantics { contentDescription = "Add ${business.businessName} to today's route" }
                 ) {
                     Text("Add to Today's Route")
                 }

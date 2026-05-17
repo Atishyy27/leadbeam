@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fieldflow.feature.route.ui.components.RouteProgressSheet
+import com.fieldflow.util.RequestNotificationPermission // NEW IMPORT
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
@@ -29,6 +30,9 @@ fun RouteExecutionScreen(
     onNavigateBack: () -> Unit,
     viewModel: RouteExecutionViewModel = hiltViewModel()
 ) {
+    // Automatically request POST_NOTIFICATIONS permission on Android 13+
+    RequestNotificationPermission()
+    
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current

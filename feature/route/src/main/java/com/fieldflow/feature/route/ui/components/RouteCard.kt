@@ -14,6 +14,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.fieldflow.feature.route.data.model.Route
 
+// Minimum touch target helper for accessibility
+private val MinTouchTargetSize = 48.dp
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RouteCard(
@@ -80,8 +83,12 @@ fun RouteCard(
                 )
             }
             
-            IconButton(onClick = onDelete) {
-                Icon(Icons.Filled.Delete, "Delete", tint = MaterialTheme.colorScheme.error)
+            // Updated interactive element with proper minimum touch target
+            IconButton(
+                onClick = onDelete,
+                modifier = Modifier.size(MinTouchTargetSize)
+            ) {
+                Icon(Icons.Filled.Delete, "Delete route", tint = MaterialTheme.colorScheme.error)
             }
         }
     }
