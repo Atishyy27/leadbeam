@@ -1,4 +1,4 @@
-// core/database/src/main/java/com/fieldflow/core/database/entity/RouteEntities.kt
+// core/database/src/main/java/com/fieldflow/core/database/entity/RouteEntity.kt
 package com.fieldflow.core.database.entity
 
 import androidx.room.Entity
