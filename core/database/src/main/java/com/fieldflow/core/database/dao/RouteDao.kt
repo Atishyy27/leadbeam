@@ -21,4 +21,10 @@ interface RouteDao {
 
     @Query("SELECT COUNT(*) FROM route_stops WHERE routeId = :routeId")
     suspend fun getStopCountForRoute(routeId: String): Int
+
+    @Query("SELECT * FROM route_stops WHERE routeId = :routeId ORDER BY orderIndex ASC")
+    suspend fun getStopsForRoute(routeId: String): List<RouteStopEntity>
+
+    @Delete
+    suspend fun deleteRouteStop(stop: RouteStopEntity)
 }
