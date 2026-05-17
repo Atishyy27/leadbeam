@@ -23,7 +23,7 @@ import com.fieldflow.core.database.entity.RouteStopEntity
         RouteEntity::class,
         RouteStopEntity::class
     ],
-    version = 3, // BUMPED to 3 to handle the Route schema
+    version = 4, // BUMPED to 4 for advanced route tracking fields (isActive, status)
     exportSchema = true
 )
 @TypeConverters(Converters::class)

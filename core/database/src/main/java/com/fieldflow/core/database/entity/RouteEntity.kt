@@ -3,9 +3,16 @@ package com.fieldflow.core.database.entity
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "routes")
+@Entity(
+    tableName = "routes",
+    indices = [
+        Index("is_active"),
+        Index("status")
+    ]
+)
 data class RouteEntity(
     @PrimaryKey
     @ColumnInfo(name = "id")
@@ -14,14 +21,12 @@ data class RouteEntity(
     @ColumnInfo(name = "name")
     val name: String = "Today's Route", // Added default to prevent crashes with older code
     
+    // NOTE: Changed back to String to support RouteListViewModel ("YYYY-MM-DD" parsing)
     @ColumnInfo(name = "date")
-    val date: Long, // Kept as Long because your MapViewModel passes System.currentTimeMillis()
+    val date: String, 
     
     @ColumnInfo(name = "created_at")
     val createdAt: Long = System.currentTimeMillis(),
-    
-    @ColumnInfo(name = "status")
-    val status: String = "active", // "active" or "completed"
     
     @ColumnInfo(name = "is_completed")
     val isCompleted: Boolean = false,
@@ -30,10 +35,29 @@ data class RouteEntity(
     val totalDistance: Double? = null,
     
     @ColumnInfo(name = "total_duration")
-    val totalDuration: Int? = null
+    val totalDuration: Int? = null,
+    
+    // NEW in v4
+    @ColumnInfo(name = "status")
+    val status: String = "active", // planned, active, paused, completed
+    
+    @ColumnInfo(name = "is_active")
+    val isActive: Boolean = false,
+    
+    @ColumnInfo(name = "started_at")
+    val startedAt: Long? = null,
+    
+    @ColumnInfo(name = "completed_at")
+    val completedAt: Long? = null
 )
 
-@Entity(tableName = "route_stops")
+@Entity(
+    tableName = "route_stops",
+    indices = [
+        Index("route_id"),
+        Index("business_id")
+    ]
+)
 data class RouteStopEntity(
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "id")
@@ -61,5 +85,5 @@ data class RouteStopEntity(
     val isVisited: Boolean = false,
     
     @ColumnInfo(name = "visited_at")
-    val visitedAt: Long? = null // Added from the Phase 2 requirements
+    val visitedAt: Long? = null
 )

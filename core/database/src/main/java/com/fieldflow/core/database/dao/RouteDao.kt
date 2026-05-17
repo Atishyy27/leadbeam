@@ -29,31 +29,16 @@ data class RouteStopWithBusiness(
 @Dao
 interface RouteDao {
     
-    // --- V1: Active Route Management (Used by MapViewModel) ---
-    
-    @Query("SELECT * FROM routes WHERE status = 'active' LIMIT 1")
-    suspend fun getActiveRoute(): RouteEntity?
-
-    @Query("SELECT COUNT(*) FROM route_stops WHERE route_id = :routeId")
-    suspend fun getStopCountForRoute(routeId: String): Int
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertRouteStop(stop: RouteStopEntity)
-
-    @Delete
-    suspend fun deleteRouteStop(stop: RouteStopEntity)
-
-    // A synchronous list return for older MapViewModel logic
-    @Query("SELECT * FROM route_stops WHERE route_id = :routeId ORDER BY order_index ASC")
-    suspend fun getStopsForRouteSync(routeId: String): List<RouteStopEntity>
-
-    // --- V2: Advanced Route & List Management ---
+    // --- INSERT & UPDATE ---
     
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertRoute(route: RouteEntity)
     
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertStops(stops: List<RouteStopEntity>)
+    
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertRouteStop(stop: RouteStopEntity)
     
     @Transaction
     suspend fun insertRouteWithStops(route: RouteEntity, stops: List<RouteStopEntity>) {
@@ -64,11 +49,21 @@ interface RouteDao {
     @Update
     suspend fun updateRoute(route: RouteEntity)
     
+    @Update
+    suspend fun updateStop(stop: RouteStopEntity)
+    
+    // --- DELETE ---
+    
     @Delete
     suspend fun deleteRoute(route: RouteEntity)
     
     @Query("DELETE FROM routes WHERE id = :routeId")
     suspend fun deleteRouteById(routeId: String)
+    
+    @Delete
+    suspend fun deleteRouteStop(stop: RouteStopEntity)
+    
+    // --- FETCH ROUTES ---
     
     @Transaction
     @Query("SELECT * FROM routes ORDER BY date DESC, created_at DESC")
@@ -78,13 +73,69 @@ interface RouteDao {
     @Query("SELECT * FROM routes WHERE id = :routeId")
     fun getRouteWithStopsById(routeId: String): Flow<RouteWithStops?>
     
+    @Transaction
+    @Query("SELECT * FROM routes WHERE id = :routeId")
+    suspend fun getRouteWithStopsByIdOnce(routeId: String): RouteWithStops?
+    
     @Query("SELECT * FROM routes ORDER BY date DESC, created_at DESC")
     fun getAllRoutes(): Flow<List<RouteEntity>>
     
-    // A reactive Flow return for the new RouteList UI
+    // --- FETCH STOPS ---
+    
     @Query("SELECT * FROM route_stops WHERE route_id = :routeId ORDER BY order_index ASC")
     fun getStopsForRoute(routeId: String): Flow<List<RouteStopEntity>>
+
+    @Query("SELECT * FROM route_stops WHERE route_id = :routeId ORDER BY order_index ASC")
+    suspend fun getStopsForRouteSync(routeId: String): List<RouteStopEntity>
     
     @Query("SELECT COUNT(*) FROM route_stops WHERE route_id = :routeId")
     suspend fun getStopCount(routeId: String): Int
+
+    @Query("SELECT COUNT(*) FROM route_stops WHERE route_id = :routeId")
+    suspend fun getStopCountForRoute(routeId: String): Int
+    
+    // --- ACTIVE ROUTE MANAGEMENT ---
+    
+    // Legacy support for older viewmodels
+    @Query("SELECT * FROM routes WHERE status = 'active' LIMIT 1")
+    suspend fun getActiveRouteEntity(): RouteEntity?
+    
+    @Transaction
+    @Query("SELECT * FROM routes WHERE is_active = 1 LIMIT 1")
+    fun getActiveRoute(): Flow<RouteWithStops?>
+    
+    @Transaction
+    @Query("SELECT * FROM routes WHERE is_active = 1 LIMIT 1")
+    suspend fun getActiveRouteOnce(): RouteWithStops?
+    
+    @Transaction
+    suspend fun setActiveRoute(routeId: String) {
+        // Deactivate all routes
+        clearActiveRoutes()
+        // Activate target route
+        val route = getRouteWithStopsByIdOnce(routeId)?.route ?: return
+        updateRoute(
+            route.copy(
+                isActive = true,
+                status = "active",
+                startedAt = route.startedAt ?: System.currentTimeMillis()
+            )
+        )
+    }
+    
+    @Query("UPDATE routes SET is_active = 0")
+    suspend fun clearActiveRoutes()
+    
+    @Query("UPDATE routes SET status = :status WHERE id = :routeId")
+    suspend fun updateRouteStatus(routeId: String, status: String)
+    
+    @Query("""
+        UPDATE routes 
+        SET is_completed = 1, 
+            status = 'completed', 
+            completed_at = :completedAt,
+            is_active = 0
+        WHERE id = :routeId
+    """)
+    suspend fun completeRoute(routeId: String, completedAt: Long)
 }

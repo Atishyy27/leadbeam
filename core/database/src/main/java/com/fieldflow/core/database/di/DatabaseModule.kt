@@ -8,6 +8,12 @@ import com.fieldflow.core.database.dao.BusinessDao
 import com.fieldflow.core.database.dao.CategoryDao
 import com.fieldflow.core.database.dao.RouteDao
 import com.fieldflow.core.database.dao.UserDao
+
+// NOTE: Uncomment these imports only if you actually created the physical migration files!
+// import com.fieldflow.core.database.migrations.MIGRATION_1_2
+// import com.fieldflow.core.database.migrations.MIGRATION_2_3
+// import com.fieldflow.core.database.migrations.MIGRATION_3_4
+
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -18,7 +24,7 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
-
+    
     @Provides
     @Singleton
     fun provideFieldFlowDatabase(
@@ -27,33 +33,26 @@ object DatabaseModule {
         return Room.databaseBuilder(
             context,
             FieldFlowDatabase::class.java,
-            FieldFlowDatabase.DATABASE_NAME // Uses the constant we just added to the DB file
+            FieldFlowDatabase.DATABASE_NAME
         )
-        .fallbackToDestructiveMigration() // Will save your life during rapid prototyping
+        // .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4) 
+        .fallbackToDestructiveMigration() // Continues to be your best friend during rapid prototyping
         .build()
     }
-
+    
     @Provides
     @Singleton
-    fun provideUserDao(database: FieldFlowDatabase): UserDao {
-        return database.userDao()
-    }
-
+    fun provideUserDao(database: FieldFlowDatabase): UserDao = database.userDao()
+    
     @Provides
     @Singleton
-    fun provideBusinessDao(database: FieldFlowDatabase): BusinessDao {
-        return database.businessDao()
-    }
-
+    fun provideBusinessDao(database: FieldFlowDatabase): BusinessDao = database.businessDao()
+    
     @Provides
     @Singleton
-    fun provideCategoryDao(database: FieldFlowDatabase): CategoryDao {
-        return database.categoryDao()
-    }
-
+    fun provideCategoryDao(database: FieldFlowDatabase): CategoryDao = database.categoryDao()
+    
     @Provides
     @Singleton
-    fun provideRouteDao(database: FieldFlowDatabase): RouteDao {
-        return database.routeDao()
-    }
+    fun provideRouteDao(database: FieldFlowDatabase): RouteDao = database.routeDao()
 }
