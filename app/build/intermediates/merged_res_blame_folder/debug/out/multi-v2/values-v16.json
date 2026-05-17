@@ -1,0 +1,19 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.fieldflow.app-mergeDebugResources-64:/values-v16/values-v16.xml",
+            "map": [
+                {
+                    "source": "C:\\Users\\Atishay Jain\\.gradle\\caches\\8.9\\transforms\\cd59f1a5999a2b785c8bb712eeff45f2\\transformed\\core-1.12.0\\res\\values-v16\\values-v16.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "65",
+                        "endOffsets": "116"
+                    }
+                }
+            ]
+        }
+    ]
+}

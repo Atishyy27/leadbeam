@@ -1,5 +1,6 @@
 package com.fieldflow.core.database.di
 import com.fieldflow.core.database.dao.BusinessDao
+import com.fieldflow.core.database.dao.RouteDao
 
 import android.content.Context
 import androidx.room.Room
@@ -38,5 +39,11 @@ object DatabaseModule {
     @Singleton
     fun provideBusinessDao(database: FieldFlowDatabase): BusinessDao {
         return database.businessDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideRouteDao(database: FieldFlowDatabase): com.fieldflow.core.database.dao.RouteDao {
+        return database.routeDao()
     }
 }

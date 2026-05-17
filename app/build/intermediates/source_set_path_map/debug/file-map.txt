@@ -1,0 +1,79 @@
+com.fieldflow.app-material-icons-extended-release-0 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\05462a02592bbab943884980b787c2aa\transformed\material-icons-extended-release\res
+com.fieldflow.app-ui-graphics-release-1 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\06d9aa64ccc0ea46307095883c910f79\transformed\ui-graphics-release\res
+com.fieldflow.app-play-services-maps-18.2.0-2 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\0b94df68e24e13f82f0c5cae299d6103\transformed\play-services-maps-18.2.0\res
+com.fieldflow.app-runtime-saveable-release-3 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\0e3533a617daed62b5019c80a639d785\transformed\runtime-saveable-release\res
+com.fieldflow.app-hilt-navigation-compose-1.1.0-4 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\10588fd7c2258809195bf4215952d149\transformed\hilt-navigation-compose-1.1.0\res
+com.fieldflow.app-lifecycle-runtime-ktx-2.7.0-5 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\124a334c11356c76195a82b536f69649\transformed\lifecycle-runtime-ktx-2.7.0\res
+com.fieldflow.app-material-ripple-release-6 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\141bdcdf3f81fbb8bba0c4734fce55b6\transformed\material-ripple-release\res
+com.fieldflow.app-foundation-layout-release-7 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\1fadcd7a9164d888c7b48da5eba5fd55\transformed\foundation-layout-release\res
+com.fieldflow.app-lifecycle-runtime-2.7.0-8 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\226db7dfe31e6ff49c43f6b2488f6bd5\transformed\lifecycle-runtime-2.7.0\res
+com.fieldflow.app-ui-tooling-preview-release-9 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\2643e26d92b11cf243bda594f09838fa\transformed\ui-tooling-preview-release\res
+com.fieldflow.app-sqlite-2.4.0-10 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\26f2fd4b872a83883c361df40b818753\transformed\sqlite-2.4.0\res
+com.fieldflow.app-activity-1.7.0-11 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\425254932a1a3cacba64bddf622d3fb1\transformed\activity-1.7.0\res
+com.fieldflow.app-material-release-12 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\45935e17a0a1fcaa93128ed1e92f27c0\transformed\material-release\res
+com.fieldflow.app-navigation-runtime-ktx-2.5.1-13 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\46ecec58775aeb92c818e42430b5e43a\transformed\navigation-runtime-ktx-2.5.1\res
+com.fieldflow.app-ui-tooling-data-release-14 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\4f2cf2bb6f4f4fe9ec6e27014716b574\transformed\ui-tooling-data-release\res
+com.fieldflow.app-navigation-common-ktx-2.5.1-15 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\598ad43dd1a71746615900b14d95ed49\transformed\navigation-common-ktx-2.5.1\res
+com.fieldflow.app-room-ktx-2.6.1-16 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\5a27445eeb5a5aa901e59e9c40d82edf\transformed\room-ktx-2.6.1\res
+com.fieldflow.app-foundation-release-17 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\5c2cca37bd7c2fe2ddbdf91fda310582\transformed\foundation-release\res
+com.fieldflow.app-ui-util-release-18 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\6ee49b95d76ea2c087f2872e9a4d0546\transformed\ui-util-release\res
+com.fieldflow.app-ui-text-release-19 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\6f380cb93196a9f902d649e216f06220\transformed\ui-text-release\res
+com.fieldflow.app-ui-geometry-release-20 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\748befbc3b1ce4c1a835686915ae6c2a\transformed\ui-geometry-release\res
+com.fieldflow.app-profileinstaller-1.3.0-21 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\7904d9b6ba76349762fca601a372ab2b\transformed\profileinstaller-1.3.0\res
+com.fieldflow.app-startup-runtime-1.1.1-22 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\7c5bad68810a655da3900d0a7d661e16\transformed\startup-runtime-1.1.1\res
+com.fieldflow.app-ui-tooling-release-23 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\7d0b9825afba2980148af9034fa600d9\transformed\ui-tooling-release\res
+com.fieldflow.app-fragment-1.5.1-24 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\7e9f5fad5fc0bd4be8a93170278cafcf\transformed\fragment-1.5.1\res
+com.fieldflow.app-activity-ktx-1.7.0-25 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\821531b1ee92ad456b9a9288339b7275\transformed\activity-ktx-1.7.0\res
+com.fieldflow.app-lifecycle-viewmodel-2.7.0-26 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\84816557b7b03ed1b99591048d2d28d3\transformed\lifecycle-viewmodel-2.7.0\res
+com.fieldflow.app-lifecycle-viewmodel-ktx-2.7.0-27 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\898e3aa257de52daa91efcbf2b650bd1\transformed\lifecycle-viewmodel-ktx-2.7.0\res
+com.fieldflow.app-lifecycle-process-2.7.0-28 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\8b0192203de843c2f61ee31ef265d32d\transformed\lifecycle-process-2.7.0\res
+com.fieldflow.app-sqlite-framework-2.4.0-29 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\8f9196edc825b871587108ec180a0bb3\transformed\sqlite-framework-2.4.0\res
+com.fieldflow.app-customview-poolingcontainer-1.0.0-30 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\91eea18d21b15b92d0779dd8b6bf5b2e\transformed\customview-poolingcontainer-1.0.0\res
+com.fieldflow.app-material-icons-core-release-31 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\95546e23960077c6dcafb2e1002c59cc\transformed\material-icons-core-release\res
+com.fieldflow.app-ui-unit-release-32 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\9c391005f7fceb291cdf0fa58079d183\transformed\ui-unit-release\res
+com.fieldflow.app-lifecycle-livedata-core-ktx-2.7.0-33 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\9f7685b803abbcac70586185a1b64bb1\transformed\lifecycle-livedata-core-ktx-2.7.0\res
+com.fieldflow.app-ui-release-34 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\a445a1afef9693f8e96ef2a4efd8acbb\transformed\ui-release\res
+com.fieldflow.app-core-runtime-2.2.0-35 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\a8c21e007e7543a06bc5658f852c09e7\transformed\core-runtime-2.2.0\res
+com.fieldflow.app-android-maps-utils-3.7.0-36 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\aa179b02b39c36517be5374604d82d07\transformed\android-maps-utils-3.7.0\res
+com.fieldflow.app-maps-compose-4.3.3-37 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\abb53260d717d2dbc2eda452d15cbd5e\transformed\maps-compose-4.3.3\res
+com.fieldflow.app-material3-release-38 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\ade5a0207b7684c2f163e85ddc08f68f\transformed\material3-release\res
+com.fieldflow.app-animation-release-39 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\aeeb9be12048f33e039c26e03e2ed1e0\transformed\animation-release\res
+com.fieldflow.app-navigation-compose-2.5.1-40 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\b1759a8c51853b30093a684bb096f719\transformed\navigation-compose-2.5.1\res
+com.fieldflow.app-lifecycle-livedata-core-2.7.0-41 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\b1f334ce7ac632f8fb3f1effdf652c40\transformed\lifecycle-livedata-core-2.7.0\res
+com.fieldflow.app-play-services-basement-18.0.0-42 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\b5a886b55d0f7886ac46e6023bb71f63\transformed\play-services-basement-18.0.0\res
+com.fieldflow.app-room-runtime-2.6.1-43 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\b89e814a5d14804a6ce7cf25657700a4\transformed\room-runtime-2.6.1\res
+com.fieldflow.app-activity-compose-1.7.0-44 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\b9f2aa824d3d3726cbd94c30210cb2e8\transformed\activity-compose-1.7.0\res
+com.fieldflow.app-datastore-1.0.0-45 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\bdabf8d92cf6c2ab4cda28b5635f8bbe\transformed\datastore-1.0.0\res
+com.fieldflow.app-animation-core-release-46 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\bdd382135835796bb9f77bb25b15994c\transformed\animation-core-release\res
+com.fieldflow.app-annotation-experimental-1.4.0-47 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\c2c389eaf5e0fb941400c13cb9f3e61e\transformed\annotation-experimental-1.4.0\res
+com.fieldflow.app-emoji2-1.3.0-48 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\c7e45d64a5c47c0c6bde37d96eacc041\transformed\emoji2-1.3.0\res
+com.fieldflow.app-navigation-common-2.5.1-49 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\c95163af2fbb182b43dd26156bf67875\transformed\navigation-common-2.5.1\res
+com.fieldflow.app-core-1.12.0-50 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\cd59f1a5999a2b785c8bb712eeff45f2\transformed\core-1.12.0\res
+com.fieldflow.app-navigation-runtime-2.5.1-51 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\d88fb05c067fd45b50263b438857f491\transformed\navigation-runtime-2.5.1\res
+com.fieldflow.app-runtime-release-52 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\dc9e7710da9510de607c786a8ef2fff5\transformed\runtime-release\res
+com.fieldflow.app-lifecycle-livedata-2.7.0-53 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\dcaa5dff87b71197915a76fc758602c6\transformed\lifecycle-livedata-2.7.0\res
+com.fieldflow.app-play-services-base-18.0.1-54 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\dcfbb9ccb4752b675eeb26fe40aa1018\transformed\play-services-base-18.0.1\res
+com.fieldflow.app-lifecycle-viewmodel-compose-2.7.0-55 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\ddfb68c8779d4d9ee781086f0bfe8590\transformed\lifecycle-viewmodel-compose-2.7.0\res
+com.fieldflow.app-savedstate-ktx-1.2.1-56 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\e55c2df695b999eeb9056af1e0aa65f9\transformed\savedstate-ktx-1.2.1\res
+com.fieldflow.app-datastore-preferences-1.0.0-57 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\f4b0e2cedab1d4eb7dce16c8a0101744\transformed\datastore-preferences-1.0.0\res
+com.fieldflow.app-core-ktx-1.12.0-58 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\f80b80f3aa6707dcc347bc8c8f6ea89c\transformed\core-ktx-1.12.0\res
+com.fieldflow.app-lifecycle-viewmodel-savedstate-2.7.0-59 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\fb4543dd1bbf92766badb6a50de47497\transformed\lifecycle-viewmodel-savedstate-2.7.0\res
+com.fieldflow.app-hilt-navigation-1.1.0-60 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\ff32b87aa3a3979ed08605d8caa52525\transformed\hilt-navigation-1.1.0\res
+com.fieldflow.app-savedstate-1.2.1-61 C:\Users\Atishay Jain\.gradle\caches\8.9\transforms\ff8c7617d9a9e13a6f7dbe338868914f\transformed\savedstate-1.2.1\res
+com.fieldflow.app-pngs-62 C:\dev\leadbeam\app\build\generated\res\pngs\debug
+com.fieldflow.app-resValues-63 C:\dev\leadbeam\app\build\generated\res\resValues\debug
+com.fieldflow.app-packageDebugResources-64 C:\dev\leadbeam\app\build\intermediates\incremental\debug\packageDebugResources\merged.dir
+com.fieldflow.app-packageDebugResources-65 C:\dev\leadbeam\app\build\intermediates\incremental\debug\packageDebugResources\stripped.dir
+com.fieldflow.app-merged_res-66 C:\dev\leadbeam\app\build\intermediates\merged_res\debug
+com.fieldflow.app-debug-67 C:\dev\leadbeam\app\src\debug\res
+com.fieldflow.app-main-68 C:\dev\leadbeam\app\src\main\res
+com.fieldflow.app-packaged_res-69 C:\dev\leadbeam\core\common\build\intermediates\packaged_res\debug
+com.fieldflow.app-packaged_res-70 C:\dev\leadbeam\core\database\build\intermediates\packaged_res\debug
+com.fieldflow.app-packaged_res-71 C:\dev\leadbeam\core\datastore\build\intermediates\packaged_res\debug
+com.fieldflow.app-packaged_res-72 C:\dev\leadbeam\core\network\build\intermediates\packaged_res\debug
+com.fieldflow.app-packaged_res-73 C:\dev\leadbeam\core\ui\build\intermediates\packaged_res\debug
+com.fieldflow.app-packaged_res-74 C:\dev\leadbeam\feature\auth\build\intermediates\packaged_res\debug
+com.fieldflow.app-packaged_res-75 C:\dev\leadbeam\feature\business\build\intermediates\packaged_res\debug
+com.fieldflow.app-packaged_res-76 C:\dev\leadbeam\feature\map\build\intermediates\packaged_res\debug
+com.fieldflow.app-packaged_res-77 C:\dev\leadbeam\feature\profile\build\intermediates\packaged_res\debug
+com.fieldflow.app-packaged_res-78 C:\dev\leadbeam\feature\route\build\intermediates\packaged_res\debug
