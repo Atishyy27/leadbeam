@@ -1,3 +1,4 @@
+// core/database/src/main/java/com/fieldflow/core/database/dao/BusinessDao.kt
 package com.fieldflow.core.database.dao
 
 import androidx.room.*
@@ -23,30 +24,39 @@ interface BusinessDao {
     
     // --- QUERIES ---
 
-    @Query("SELECT * FROM businesses WHERE leadbeam_id = :businessId")
-    suspend fun getById(businessId: String): BusinessEntity?
+    @Query("SELECT * FROM businesses WHERE leadbeam_id = :id")
+    suspend fun getById(id: String): BusinessEntity?
     
-    @Query("SELECT * FROM businesses WHERE leadbeam_id = :businessId")
-    fun getByIdFlow(businessId: String): Flow<BusinessEntity?>
+    @Query("SELECT * FROM businesses WHERE leadbeam_id = :id")
+    fun getByIdFlow(id: String): Flow<BusinessEntity?>
+
+    @Query("SELECT * FROM businesses")
+    fun getAll(): List<BusinessEntity>
     
     @Query("""
         SELECT * FROM businesses 
-        WHERE lat BETWEEN :southwestLat AND :northeastLat
-        AND long BETWEEN :southwestLong AND :northeastLong
-        AND is_hidden = 0
-        ORDER BY overall_confidence DESC
+        WHERE is_hidden = 0
+        AND lat BETWEEN :minLat AND :maxLat 
+        AND long BETWEEN :minLong AND :maxLong
+        ORDER BY 
+            CASE 
+                WHEN is_favorite = 1 THEN 0 
+                ELSE 1 
+            END,
+            confidence DESC,
+            overall_confidence DESC
     """)
     fun getBusinessesInBounds(
-        southwestLat: Double,
-        southwestLong: Double,
-        northeastLat: Double,
-        northeastLong: Double
+        minLat: Double,
+        maxLat: Double,
+        minLong: Double,
+        maxLong: Double
     ): Flow<List<BusinessEntity>>
 
     @Query("""
         SELECT * FROM businesses 
-        WHERE latGrid BETWEEN :minLatGrid AND :maxLatGrid 
-        AND longGrid BETWEEN :minLongGrid AND :maxLongGrid
+        WHERE lat_grid BETWEEN :minLatGrid AND :maxLatGrid 
+        AND long_grid BETWEEN :minLongGrid AND :maxLongGrid
     """)
     suspend fun getBusinessesInGrid(
         minLatGrid: Int,
@@ -60,20 +70,15 @@ interface BusinessDao {
     @Query("SELECT * FROM businesses WHERE is_favorite = 1 AND is_hidden = 0 ORDER BY name ASC")
     fun getFavorites(): Flow<List<BusinessEntity>>
     
-    @Transaction
-    suspend fun toggleFavorite(businessId: String) {
-        val business = getById(businessId) ?: return
-        update(business.copy(isFavorite = !business.isFavorite))
-    }
-    
-    @Transaction
-    suspend fun toggleHidden(businessId: String) {
-        val business = getById(businessId) ?: return
-        update(business.copy(isHidden = !business.isHidden))
-    }
-    
     @Query("SELECT * FROM businesses WHERE is_hidden = 1 ORDER BY name ASC")
     fun getHidden(): Flow<List<BusinessEntity>>
+    
+    // Direct updates are faster and avoid read-then-write race conditions
+    @Query("UPDATE businesses SET is_favorite = NOT is_favorite WHERE leadbeam_id = :id")
+    suspend fun toggleFavorite(id: String)
+    
+    @Query("UPDATE businesses SET is_hidden = NOT is_hidden WHERE leadbeam_id = :id")
+    suspend fun toggleHidden(id: String)
     
     // --- LIST & PAGINATION ---
     
@@ -102,6 +107,26 @@ interface BusinessDao {
     
     @Query("DELETE FROM businesses WHERE cached_at < :threshold")
     suspend fun deleteOlderThan(threshold: Long)
+
+    @Query("DELETE FROM businesses WHERE last_fetched < :timestamp AND is_favorite = 0")
+    suspend fun deleteStale(timestamp: Long)
+    
+    @Query("UPDATE businesses SET last_fetched = :timestamp WHERE leadbeam_id IN (:ids)")
+    suspend fun updateFetchTime(ids: List<String>, timestamp: Long)
+    
+    @Query("""
+        SELECT COUNT(*) FROM businesses 
+        WHERE last_fetched > :timestamp 
+        AND lat BETWEEN :minLat AND :maxLat 
+        AND long BETWEEN :minLong AND :maxLong
+    """)
+    suspend fun getCachedCountInBounds(
+        minLat: Double,
+        maxLat: Double,
+        minLong: Double,
+        maxLong: Double,
+        timestamp: Long
+    ): Int
     
     @Query("DELETE FROM businesses")
     suspend fun deleteAll()

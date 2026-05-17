@@ -4,16 +4,8 @@ package com.fieldflow.core.database.di
 import android.content.Context
 import androidx.room.Room
 import com.fieldflow.core.database.FieldFlowDatabase
-import com.fieldflow.core.database.dao.BusinessDao
-import com.fieldflow.core.database.dao.CategoryDao
-import com.fieldflow.core.database.dao.RouteDao
-import com.fieldflow.core.database.dao.UserDao
-
-// NOTE: Uncomment these imports only if you actually created the physical migration files!
-// import com.fieldflow.core.database.migrations.MIGRATION_1_2
-// import com.fieldflow.core.database.migrations.MIGRATION_2_3
-// import com.fieldflow.core.database.migrations.MIGRATION_3_4
-
+import com.fieldflow.core.database.dao.*
+import com.fieldflow.core.database.migrations.*
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -35,8 +27,13 @@ object DatabaseModule {
             FieldFlowDatabase::class.java,
             FieldFlowDatabase.DATABASE_NAME
         )
-        // .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4) 
-        .fallbackToDestructiveMigration() // Continues to be your best friend during rapid prototyping
+        .addMigrations(
+            MIGRATION_1_2,
+            MIGRATION_2_3,
+            MIGRATION_3_4,
+            MIGRATION_4_5
+        )
+        .fallbackToDestructiveMigration() // Retained for safety during rapid structural modifications
         .build()
     }
     
@@ -55,4 +52,8 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideRouteDao(database: FieldFlowDatabase): RouteDao = database.routeDao()
+    
+    @Provides
+    @Singleton
+    fun provideSyncQueueDao(database: FieldFlowDatabase): SyncQueueDao = database.syncQueueDao()
 }

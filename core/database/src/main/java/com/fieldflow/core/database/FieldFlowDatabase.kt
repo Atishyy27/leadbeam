@@ -9,11 +9,13 @@ import com.fieldflow.core.database.dao.BusinessDao
 import com.fieldflow.core.database.dao.CategoryDao
 import com.fieldflow.core.database.dao.RouteDao
 import com.fieldflow.core.database.dao.UserDao
+import com.fieldflow.core.database.dao.SyncQueueDao
 import com.fieldflow.core.database.entities.BusinessEntity
 import com.fieldflow.core.database.entities.CategoryEntity
+import com.fieldflow.core.database.entities.RouteEntity
+import com.fieldflow.core.database.entities.RouteStopEntity
+import com.fieldflow.core.database.entities.SyncQueueEntity
 import com.fieldflow.core.database.entities.UserEntity
-import com.fieldflow.core.database.entity.RouteEntity
-import com.fieldflow.core.database.entity.RouteStopEntity
 
 @Database(
     entities = [
@@ -21,9 +23,10 @@ import com.fieldflow.core.database.entity.RouteStopEntity
         BusinessEntity::class,
         CategoryEntity::class,
         RouteEntity::class,
-        RouteStopEntity::class
+        RouteStopEntity::class,
+        SyncQueueEntity::class
     ],
-    version = 4, // BUMPED to 4 for advanced route tracking fields (isActive, status)
+    version = 5, // BUMPED to 5 for Offline Sync Queue
     exportSchema = true
 )
 @TypeConverters(Converters::class)
@@ -32,6 +35,7 @@ abstract class FieldFlowDatabase : RoomDatabase() {
     abstract fun businessDao(): BusinessDao
     abstract fun categoryDao(): CategoryDao
     abstract fun routeDao(): RouteDao
+    abstract fun syncQueueDao(): SyncQueueDao
     
     companion object {
         const val DATABASE_NAME = "fieldflow_database"

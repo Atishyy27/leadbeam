@@ -1,5 +1,5 @@
-// core/database/src/main/java/com/fieldflow/core/database/entities/RouteStopEntity.kt
-package com.fieldflow.core.database.entities
+// core/database/src/main/java/com/fieldflow/core/database/entity/RouteStopEntity.kt
+package com.fieldflow.core.database.entity
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
