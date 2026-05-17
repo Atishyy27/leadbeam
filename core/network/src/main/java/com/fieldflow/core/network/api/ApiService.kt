@@ -36,15 +36,18 @@ interface ApiService {
         @Query("category_ids") categoryIds: String? = null // NEW from v2
     ): Response<ApiResponse<NearbyResponse>>
     
-    // NEW: Business Details
     @GET("businesses/{leadbeam_id}")
     suspend fun getBusinessDetail(
         @Path("leadbeam_id") leadbeamId: String
     ): Response<ApiResponse<BusinessDetailResponse>>
     
     // --- CATEGORIES ---
-    
-    // NEW: Categories
     @GET("categories")
     suspend fun getCategories(): Response<ApiResponse<CategoriesResponse>>
+
+    // --- ROUTE OPTIMIZATION ---
+    @PATCH("routes/{route_id}/optimize")
+    suspend fun optimizeRoute(
+        @Path("route_id") routeId: String
+    ): Response<ApiResponse<RouteOptimizationResponse>>
 }
