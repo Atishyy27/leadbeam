@@ -12,8 +12,9 @@ import com.fieldflow.feature.business.ui.detail.BusinessDetailScreen
 import com.fieldflow.feature.business.ui.list.BusinessListScreen
 import com.fieldflow.feature.route.ui.create.CreateRouteScreen
 import com.fieldflow.feature.route.ui.detail.RouteDetailScreen
+import com.fieldflow.feature.route.ui.execution.RouteExecutionScreen
 import com.fieldflow.feature.route.ui.list.RoutesListScreen
-import com.fieldflow.feature.map.ui.MapScreen // Updated to match your feature module
+import com.fieldflow.feature.map.ui.MapScreen
 
 sealed class Screen(val route: String) {
     object Login : Screen("login")
@@ -27,6 +28,7 @@ sealed class Screen(val route: String) {
     object RouteDetail : Screen("route/{routeId}") {
         fun createRoute(routeId: String) = "route/$routeId"
     }
+    object RouteExecution : Screen("route/execution")
 }
 
 @Composable
@@ -111,6 +113,12 @@ fun FieldFlowNavHost(
             arguments = listOf(navArgument("routeId") { type = NavType.StringType })
         ) {
             RouteDetailScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        
+        composable(Screen.RouteExecution.route) {
+            RouteExecutionScreen(
                 onNavigateBack = { navController.popBackStack() }
             )
         }
