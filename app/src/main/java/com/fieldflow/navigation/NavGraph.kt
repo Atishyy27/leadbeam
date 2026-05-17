@@ -11,6 +11,7 @@ import com.fieldflow.feature.auth.ui.LoginScreen
 import com.fieldflow.feature.business.ui.detail.BusinessDetailScreen
 import com.fieldflow.feature.business.ui.list.BusinessListScreen
 import com.fieldflow.feature.route.ui.create.CreateRouteScreen
+import com.fieldflow.feature.route.ui.detail.RouteDetailScreen
 import com.fieldflow.feature.route.ui.list.RoutesListScreen
 import com.fieldflow.feature.map.ui.MapScreen // Updated to match your feature module
 
@@ -23,6 +24,9 @@ sealed class Screen(val route: String) {
     }
     object RoutesList : Screen("routes")
     object CreateRoute : Screen("create_route")
+    object RouteDetail : Screen("route/{routeId}") {
+        fun createRoute(routeId: String) = "route/$routeId"
+    }
 }
 
 @Composable
@@ -54,7 +58,6 @@ fun FieldFlowNavHost(
                 onNavigateToList = {
                     navController.navigate(Screen.BusinessList.route)
                 },
-                // Note: You will need to add this parameter to your MapScreen composable if you haven't yet!
                 onNavigateToRoutes = {
                     navController.navigate(Screen.RoutesList.route)
                 }
@@ -80,7 +83,7 @@ fun FieldFlowNavHost(
             )
         }
         
-        // --- ROUTING (BLOCK 2C) ---
+        // --- ROUTING (BLOCK 2C & PHASE 3) ---
         composable(Screen.RoutesList.route) {
             RoutesListScreen(
                 onNavigateBack = { navController.popBackStack() },
@@ -88,7 +91,8 @@ fun FieldFlowNavHost(
                     navController.navigate(Screen.CreateRoute.route)
                 },
                 onRouteClick = { routeId ->
-                    // Navigate to route detail (Will be handled in Phase 3)
+                    // Now correctly navigates to RouteDetailScreen
+                    navController.navigate(Screen.RouteDetail.createRoute(routeId)) 
                 }
             )
         }
@@ -99,6 +103,15 @@ fun FieldFlowNavHost(
                 onNavigateToBusinessPicker = {
                     navController.navigate(Screen.BusinessList.route)
                 }
+            )
+        }
+        
+        composable(
+            route = Screen.RouteDetail.route,
+            arguments = listOf(navArgument("routeId") { type = NavType.StringType })
+        ) {
+            RouteDetailScreen(
+                onNavigateBack = { navController.popBackStack() }
             )
         }
     }
