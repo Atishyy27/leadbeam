@@ -35,6 +35,12 @@ class MapViewModel @Inject constructor(
     private val _selectedCategory = MutableStateFlow<String?>(null)
     val selectedCategory: StateFlow<String?> = _selectedCategory.asStateFlow()
 
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    private val _isOffline = MutableStateFlow(false)
+    val isOffline: StateFlow<Boolean> = _isOffline.asStateFlow()
+
     // 2. THIS IS THE MAGIC: It automatically filters whenever data, search, or category changes!
     val visibleBusinesses: StateFlow<List<MapBusinessItem>> = kotlinx.coroutines.flow.combine(
         _rawBusinesses,
@@ -51,17 +57,26 @@ class MapViewModel @Inject constructor(
     // 3. Update your fetch function to save to _rawBusinesses instead of _visibleBusinesses
     private fun fetchBusinessesInBounds(bounds: LatLngBounds) {
         fetchJob?.cancel()
-        fetchJob = getBusinessesInBoundsUseCase(bounds)
-            .onEach { businesses ->
-                _rawBusinesses.value = businesses // CHANGE THIS LINE
+        fetchJob = viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                getBusinessesInBoundsUseCase(bounds).collect { businesses ->
+                    _rawBusinesses.value = businesses
+                    _isOffline.value = false // Success means we are online
+                }
+            } catch (e: Exception) {
+                // If the API fails, we show the offline indicator!
+                _isOffline.value = true 
+            } finally {
+                _isLoading.value = false
             }
-            .launchIn(viewModelScope)
+        }
     }
 
     // 4. Add the UI Event Triggers
     fun updateSearchQuery(query: String) { _searchQuery.value = query }
     fun updateCategory(category: String?) { _selectedCategory.value = category }
-    
+
     private val cameraBoundsFlow = MutableStateFlow<LatLngBounds?>(null)
 
     init {
@@ -120,14 +135,5 @@ class MapViewModel @Inject constructor(
                 println("MATRIX MODE ERROR saving to route: ${e.message}")
             }
         }
-    }
-
-    private fun fetchBusinessesInBounds(bounds: LatLngBounds) {
-        fetchJob?.cancel() // Cancel previous fetch if user pans again
-        fetchJob = getBusinessesInBoundsUseCase(bounds)
-            .onEach { businesses ->
-                _visibleBusinesses.value = businesses
-            }
-            .launchIn(viewModelScope)
     }
 }

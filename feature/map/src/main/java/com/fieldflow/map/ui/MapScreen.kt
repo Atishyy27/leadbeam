@@ -5,6 +5,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -22,6 +23,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun MapScreen(
     viewModel: MapViewModel,
+    onNavigateToList: () -> Unit = {},
+    onBusinessClick: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val businesses by viewModel.visibleBusinesses.collectAsState()
@@ -48,7 +51,6 @@ fun MapScreen(
         }
     }
 
-    // WRAP EVERYTHING IN A BOX SO THE SEARCH BAR FLOATS ON TOP
     Box(modifier = modifier.fillMaxSize()) {
         
         // 1. THE MAP (Base Layer)
@@ -77,12 +79,42 @@ fun MapScreen(
                 },
                 onClusterItemClick = { business ->
                     selectedBusiness = business
+                    onBusinessClick(business.leadbeamId) // Added the explicit business click handler
                     false
                 }
             )
         }
 
-        // 2. THE SEARCH & FILTER BAR (Floating Top Layer)
+        // 2. STATUS INDICATORS (Loading & Offline)
+        val isLoading by viewModel.isLoading.collectAsState()
+        val isOffline by viewModel.isOffline.collectAsState()
+
+        if (isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.align(Alignment.Center),
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+
+        if (isOffline) {
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 120.dp, end = 16.dp), 
+                color = MaterialTheme.colorScheme.errorContainer,
+                shape = MaterialTheme.shapes.small,
+                shadowElevation = 4.dp
+            ) {
+                Text(
+                    text = "Offline Mode (Cached)",
+                    color = MaterialTheme.colorScheme.onErrorContainer,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                    style = MaterialTheme.typography.labelMedium
+                )
+            }
+        }
+
+        // 3. THE SEARCH & FILTER BAR (Floating Top Layer)
         val searchQuery by viewModel.searchQuery.collectAsState()
         val selectedCategory by viewModel.selectedCategory.collectAsState()
         val categories = listOf("Restaurant", "Retail", "Service", "Healthcare")
@@ -93,26 +125,43 @@ fun MapScreen(
                 .fillMaxWidth()
                 .padding(top = 48.dp, start = 16.dp, end = 16.dp)
         ) {
-            OutlinedTextField(
-                value = searchQuery,
-                onValueChange = { viewModel.updateSearchQuery(it) },
-                placeholder = { Text("Search businesses...") },
+            // Added a Row to hold the SearchBar and List Button side-by-side
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = MaterialTheme.colorScheme.surface,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                    focusedIndicatorColor = MaterialTheme.colorScheme.primary,
-                    unfocusedIndicatorColor = MaterialTheme.colorScheme.outline
-                ),
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
-                trailingIcon = {
-                    if (searchQuery.isNotEmpty()) {
-                        IconButton(onClick = { viewModel.updateSearchQuery("") }) {
-                            Icon(Icons.Default.Clear, contentDescription = "Clear")
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { viewModel.updateSearchQuery(it) },
+                    placeholder = { Text("Search businesses...") },
+                    modifier = Modifier.weight(1f),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = MaterialTheme.colorScheme.surface,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                        focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                        unfocusedIndicatorColor = MaterialTheme.colorScheme.outline
+                    ),
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
+                    trailingIcon = {
+                        if (searchQuery.isNotEmpty()) {
+                            IconButton(onClick = { viewModel.updateSearchQuery("") }) {
+                                Icon(Icons.Default.Clear, contentDescription = "Clear")
+                            }
                         }
                     }
+                )
+
+                // The List Navigation Button
+                IconButton(
+                    onClick = onNavigateToList,
+                    colors = IconButtonDefaults.iconButtonColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    )
+                ) {
+                    Icon(Icons.Filled.List, contentDescription = "View as list")
                 }
-            )
+            }
 
             LazyRow(
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
@@ -132,7 +181,7 @@ fun MapScreen(
         }
     }
 
-    // 3. THE BOTTOM SHEET (Renders when a pin is clicked)
+    // 4. THE BOTTOM SHEET
     selectedBusiness?.let { business ->
         ModalBottomSheet(
             onDismissRequest = { selectedBusiness = null },
@@ -140,7 +189,7 @@ fun MapScreen(
         ) {
             Column(
                 modifier = Modifier
-                    .fillMaxWidth() // Don't use fillMaxSize in a bottom sheet!
+                    .fillMaxWidth()
                     .padding(16.dp)
             ) {
                 Text(
@@ -156,7 +205,6 @@ fun MapScreen(
                 
                 Button(
                     onClick = { 
-                        // ACTUALLY SAVES TO THE DATABASE NOW
                         viewModel.addBusinessToRoute(business)
                         selectedBusiness = null 
                     },
