@@ -1,32 +1,21 @@
 package com.fieldflow.feature.map.ui
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.fieldflow.feature.map.domain.model.MapBusinessItem
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
-import com.google.maps.android.compose.GoogleMap
-import com.google.maps.android.compose.MapProperties
-import com.google.maps.android.compose.MapUiSettings
-import com.google.maps.android.compose.clustering.Clustering
-import com.google.maps.android.compose.rememberCameraPositionState
+import com.google.maps.android.compose.*
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -37,10 +26,7 @@ fun MapScreen(
 ) {
     val businesses by viewModel.visibleBusinesses.collectAsState()
     val scope = rememberCoroutineScope()
-    
-    // Track which business is currently selected for the Bottom Sheet
     var selectedBusiness by remember { mutableStateOf<MapBusinessItem?>(null) }
-
     var isLocationGranted by remember { mutableStateOf(false) }
 
     com.fieldflow.feature.map.ui.components.LocationPermissionHandler(
@@ -49,18 +35,11 @@ fun MapScreen(
         }
     )
 
-    // Later, inside your GoogleMap() composable, update the properties:
-    properties = com.google.maps.android.compose.MapProperties(
-        isMyLocationEnabled = isLocationGranted // Turns on the Blue Dot and default location button!
-    )
-
-    // Default target: Austin, TX (Based on the Mock API data spec)
     val defaultLocation = LatLng(30.2672, -97.7431)
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(defaultLocation, 12f)
     }
 
-    // Observe camera movement state. When movement stops, grab the visible bounding box.
     LaunchedEffect(cameraPositionState.isMoving) {
         if (!cameraPositionState.isMoving) {
             cameraPositionState.projection?.visibleRegion?.latLngBounds?.let { bounds ->
@@ -69,40 +48,91 @@ fun MapScreen(
         }
     }
 
-    GoogleMap(
-        modifier = modifier.fillMaxSize(),
-        cameraPositionState = cameraPositionState,
-        properties = MapProperties(
-            isMyLocationEnabled = false // Will enable after handling runtime location permissions
-        ),
-        uiSettings = MapUiSettings(
-            zoomControlsEnabled = false,
-            myLocationButtonEnabled = true
-        )
-    ) {
-        // High-performance rendering engine for large datasets
-        Clustering(
-            items = businesses,
-            onClusterClick = { cluster ->
-                // Zoom in smoothly when a cluster is tapped
-                scope.launch {
-                    val zoomLevel = cameraPositionState.position.zoom + 2f
-                    cameraPositionState.animate(
-                        update = CameraUpdateFactory.newLatLngZoom(cluster.position, zoomLevel),
-                        durationMs = 500
+    // WRAP EVERYTHING IN A BOX SO THE SEARCH BAR FLOATS ON TOP
+    Box(modifier = modifier.fillMaxSize()) {
+        
+        // 1. THE MAP (Base Layer)
+        GoogleMap(
+            modifier = Modifier.fillMaxSize(),
+            cameraPositionState = cameraPositionState,
+            properties = MapProperties(
+                isMyLocationEnabled = isLocationGranted 
+            ),
+            uiSettings = MapUiSettings(
+                zoomControlsEnabled = false,
+                myLocationButtonEnabled = true
+            )
+        ) {
+            Clustering(
+                items = businesses,
+                onClusterClick = { cluster ->
+                    scope.launch {
+                        val zoomLevel = cameraPositionState.position.zoom + 2f
+                        cameraPositionState.animate(
+                            update = CameraUpdateFactory.newLatLngZoom(cluster.position, zoomLevel),
+                            durationMs = 500
+                        )
+                    }
+                    true
+                },
+                onClusterItemClick = { business ->
+                    selectedBusiness = business
+                    false
+                }
+            )
+        }
+
+        // 2. THE SEARCH & FILTER BAR (Floating Top Layer)
+        val searchQuery by viewModel.searchQuery.collectAsState()
+        val selectedCategory by viewModel.selectedCategory.collectAsState()
+        val categories = listOf("Restaurant", "Retail", "Service", "Healthcare")
+
+        Column(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .fillMaxWidth()
+                .padding(top = 48.dp, start = 16.dp, end = 16.dp)
+        ) {
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { viewModel.updateSearchQuery(it) },
+                placeholder = { Text("Search businesses...") },
+                modifier = Modifier.fillMaxWidth(),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                    unfocusedIndicatorColor = MaterialTheme.colorScheme.outline
+                ),
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
+                trailingIcon = {
+                    if (searchQuery.isNotEmpty()) {
+                        IconButton(onClick = { viewModel.updateSearchQuery("") }) {
+                            Icon(Icons.Default.Clear, contentDescription = "Clear")
+                        }
+                    }
+                }
+            )
+
+            LazyRow(
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(categories) { category ->
+                    FilterChip(
+                        selected = selectedCategory == category,
+                        onClick = { 
+                            if (selectedCategory == category) viewModel.updateCategory(null) 
+                            else viewModel.updateCategory(category) 
+                        },
+                        label = { Text(category) }
                     )
                 }
-                true // Return true to indicate we handled the click completely
-            },
-            onClusterItemClick = { business ->
-                // Show business details bottom sheet
-                selectedBusiness = business
-                false // Return false so Google Maps still auto-centers the selected pin
             }
-        )
+        }
     }
 
-    // Render Bottom Sheet if a business is selected
+    // 3. THE BOTTOM SHEET (Renders when a pin is clicked)
     selectedBusiness?.let { business ->
         ModalBottomSheet(
             onDismissRequest = { selectedBusiness = null },
@@ -110,7 +140,7 @@ fun MapScreen(
         ) {
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxWidth() // Don't use fillMaxSize in a bottom sheet!
                     .padding(16.dp)
             ) {
                 Text(
@@ -126,10 +156,11 @@ fun MapScreen(
                 
                 Button(
                     onClick = { 
-                        // TODO: Phase 5 Route Addition Logic
+                        // ACTUALLY SAVES TO THE DATABASE NOW
+                        viewModel.addBusinessToRoute(business)
                         selectedBusiness = null 
                     },
-                    modifier = Modifier.fillMaxSize() // Fills width nicely for a primary action
+                    modifier = Modifier.fillMaxWidth().height(48.dp)
                 ) {
                     Text("Add to Today's Route")
                 }

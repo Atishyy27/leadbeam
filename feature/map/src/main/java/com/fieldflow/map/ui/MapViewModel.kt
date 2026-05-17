@@ -26,6 +26,42 @@ class MapViewModel @Inject constructor(
     private val _visibleBusinesses = MutableStateFlow<List<MapBusinessItem>>(emptyList())
     val visibleBusinesses: StateFlow<List<MapBusinessItem>> = _visibleBusinesses.asStateFlow()
 
+    // 1. Add these variables to hold our raw data and filter states
+    private val _rawBusinesses = MutableStateFlow<List<MapBusinessItem>>(emptyList())
+    
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+
+    private val _selectedCategory = MutableStateFlow<String?>(null)
+    val selectedCategory: StateFlow<String?> = _selectedCategory.asStateFlow()
+
+    // 2. THIS IS THE MAGIC: It automatically filters whenever data, search, or category changes!
+    val visibleBusinesses: StateFlow<List<MapBusinessItem>> = kotlinx.coroutines.flow.combine(
+        _rawBusinesses,
+        _searchQuery,
+        _selectedCategory
+    ) { businesses, query, category ->
+        businesses.filter { business ->
+            val matchesCategory = category == null || business.category == category
+            val matchesSearch = query.isBlank() || business.businessName.contains(query, ignoreCase = true)
+            matchesCategory && matchesSearch
+        }
+    }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // 3. Update your fetch function to save to _rawBusinesses instead of _visibleBusinesses
+    private fun fetchBusinessesInBounds(bounds: LatLngBounds) {
+        fetchJob?.cancel()
+        fetchJob = getBusinessesInBoundsUseCase(bounds)
+            .onEach { businesses ->
+                _rawBusinesses.value = businesses // CHANGE THIS LINE
+            }
+            .launchIn(viewModelScope)
+    }
+
+    // 4. Add the UI Event Triggers
+    fun updateSearchQuery(query: String) { _searchQuery.value = query }
+    fun updateCategory(category: String?) { _selectedCategory.value = category }
+    
     private val cameraBoundsFlow = MutableStateFlow<LatLngBounds?>(null)
 
     init {
@@ -85,7 +121,7 @@ class MapViewModel @Inject constructor(
             }
         }
     }
-    
+
     private fun fetchBusinessesInBounds(bounds: LatLngBounds) {
         fetchJob?.cancel() // Cancel previous fetch if user pans again
         fetchJob = getBusinessesInBoundsUseCase(bounds)
