@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -55,6 +56,14 @@ fun RouteDetailScreen(
                 actions = {
                     when (val state = uiState) {
                         is RouteDetailUiState.Success -> {
+                            // NEW: Start Route Button
+                            if (!state.route.isCompleted && state.route.stops.isNotEmpty()) {
+                                IconButton(onClick = { viewModel.startExecution() }) {
+                                    Icon(Icons.Filled.PlayArrow, "Start route")
+                                }
+                            }
+                            
+                            // EXISTING: Optimize Button
                             if (!state.route.isCompleted) {
                                 IconButton(
                                     onClick = { viewModel.optimizeRoute() },

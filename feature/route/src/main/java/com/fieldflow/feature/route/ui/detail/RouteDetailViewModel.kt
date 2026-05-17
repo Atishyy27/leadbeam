@@ -49,6 +49,17 @@ class RouteDetailViewModel @Inject constructor(
     init {
         loadRoute()
     }
+
+    fun startExecution() {
+        viewModelScope.launch {
+            try {
+                routeRepository.startRouteExecution(routeId)
+                // Navigation will be handled by RouteDetailScreen's LaunchedEffect
+            } catch (e: Exception) {
+                _events.send(RouteDetailEvent.ShowError("Failed to start route"))
+            }
+        }
+    }
     
     private fun loadRoute() {
         viewModelScope.launch {
