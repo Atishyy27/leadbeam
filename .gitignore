@@ -22,3 +22,28 @@ yarn-error.log
 # --- Internal ---
 # Internal evaluation doc - DO NOT include when sharing with candidates
 INTERNAL_EVALUATION.md
+
+# Gradle / Android
+.gradle/
+build/
+**/build/
+
+# Local config
+local.properties
+
+# IDE
+.idea/
+*.iml
+
+# Kotlin
+*.class
+*.log
+
+# APKs
+*.apk
+*.aab
+
+# Generated
+captures/
+.externalNativeBuild/
+.cxx/
