@@ -3,14 +3,16 @@ package com.fieldflow.feature.route.data.repository
 
 import com.fieldflow.core.database.dao.BusinessDao
 import com.fieldflow.core.database.dao.RouteDao
-import com.fieldflow.core.database.entity.RouteEntity
-import com.fieldflow.core.database.entity.RouteStopEntity
+import com.fieldflow.core.database.entities.RouteEntity
+import com.fieldflow.core.database.entities.RouteStopEntity
 import com.fieldflow.core.network.api.ApiService
+import com.fieldflow.core.sync.SyncManager
 import com.fieldflow.feature.business.data.mapper.toDomain
 import com.fieldflow.feature.route.data.model.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import org.json.JSONObject
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -24,10 +26,11 @@ sealed class Result<out T> {
 class RouteRepository @Inject constructor(
     private val routeDao: RouteDao,
     private val businessDao: BusinessDao,
-    private val apiService: ApiService
+    private val apiService: ApiService,
+    private val syncManager: SyncManager
 ) {
     
-    // --- BASIC ROUTE CRUD ---
+    // --- BASIC ROUTE CRUD (OFFLINE-FIRST) ---
 
     fun getAllRoutes(): Flow<List<Route>> {
         return routeDao.getAllRoutesWithStops().map { routesWithStops ->
@@ -51,13 +54,14 @@ class RouteRepository @Inject constructor(
         )
         
         val stops = businessIds.mapIndexed { index, businessId ->
+            val business = businessDao.getById(businessId)
             RouteStopEntity(
-                id = 0, // Let Room auto-generate the ID
+                id = "stop_${UUID.randomUUID()}", // Client-side UUID for offline sync safety
                 routeId = routeId,
                 businessId = businessId,
-                businessName = businessDao.getById(businessId)?.name ?: "Unknown Business", // Fallback if missing
-                lat = businessDao.getById(businessId)?.lat ?: 0.0,
-                long = businessDao.getById(businessId)?.long ?: 0.0,
+                businessName = business?.name ?: "Unknown Business",
+                lat = business?.lat ?: 0.0,
+                long = business?.long ?: 0.0,
                 orderIndex = index,
                 isVisited = false
             )
@@ -75,9 +79,13 @@ class RouteRepository @Inject constructor(
     suspend fun optimizeRoute(routeId: String): Result<OptimizationResult> {
         return try {
             val currentRoute = getRouteById(routeId).first() 
-                ?: return Result.Error("Route not found")
+                ?: return Result.Error("Route not found in local cache")
             
             val response = apiService.optimizeRoute(routeId)
+            if (!response.isSuccessful) {
+                return Result.Error("Failed to optimize route: ${response.code()} - ${response.message()}")
+            }
+            
             val data = response.body()?.data ?: return Result.Error("API returned empty data")
             
             val optimizedStops = data.optimizedStops.sortedBy { it.orderIndex }.mapNotNull { optimizedStop ->
@@ -85,7 +93,7 @@ class RouteRepository @Inject constructor(
                 val originalStop = currentRoute.stops.find { it.business.leadbeamId == optimizedStop.businessId }
                 
                 RouteStop(
-                    id = originalStop?.id ?: 0L,
+                    id = originalStop?.id ?: "stop_${UUID.randomUUID()}",
                     routeId = routeId,
                     orderIndex = optimizedStop.orderIndex,
                     isVisited = originalStop?.isVisited ?: false,
@@ -122,7 +130,8 @@ class RouteRepository @Inject constructor(
                 long = stop.business.long,
                 orderIndex = stop.orderIndex,
                 isVisited = stop.isVisited,
-                visitedAt = stop.visitedAt
+                visitedAt = stop.visitedAt,
+                notes = stop.notes
             )
         }
         
@@ -140,7 +149,7 @@ class RouteRepository @Inject constructor(
         routeDao.insertStops(stops)
     }
     
-    // --- ACTIVE ROUTE EXECUTION ---
+    // --- ACTIVE ROUTE EXECUTION & SYNC ---
 
     fun getActiveRoute(): Flow<RouteExecutionState?> {
         return routeDao.getActiveRoute().map { routeWithStops ->
@@ -165,33 +174,63 @@ class RouteRepository @Inject constructor(
         routeDao.setActiveRoute(routeId)
     }
     
-    suspend fun markStopVisited(stopId: Long) {
+    // OPTIMISTIC UPDATE: Mark stop visited
+    suspend fun markStopVisited(stopId: String) {
         val activeRoute = routeDao.getActiveRouteOnce() ?: return
         val stop = activeRoute.stops.find { it.stop.id == stopId }?.stop ?: return
         
+        // 1. Update local DB immediately
+        val visitedAt = System.currentTimeMillis()
         routeDao.updateStop(
             stop.copy(
                 isVisited = true,
-                visitedAt = System.currentTimeMillis()
+                visitedAt = visitedAt
             )
         )
         
-        // Check if all stops visited
+        // 2. Queue background sync
+        val data = JSONObject().apply {
+            put("isVisited", true)
+            put("visitedAt", visitedAt)
+        }.toString()
+        
+        syncManager.enqueueSyncItem(
+            entityType = "route_stop",
+            entityId = stopId,
+            action = "mark_visited",
+            data = data
+        )
+        
+        // 3. Check if all stops visited
         val allStops = activeRoute.stops.map { it.stop }
         if (allStops.all { it.isVisited || it.id == stopId }) {
-            routeDao.completeRoute(activeRoute.route.id, System.currentTimeMillis())
+            completeRoute(activeRoute.route.id)
         }
     }
     
-    suspend fun undoLastVisit(stopId: Long) {
+    // OPTIMISTIC UPDATE: Undo visit
+    suspend fun undoLastVisit(stopId: String) {
         val activeRoute = routeDao.getActiveRouteOnce() ?: return
         val stop = activeRoute.stops.find { it.stop.id == stopId }?.stop ?: return
         
+        // 1. Update local DB immediately
         routeDao.updateStop(
             stop.copy(
                 isVisited = false,
                 visitedAt = null
             )
+        )
+        
+        // 2. Queue background sync
+        val data = JSONObject().apply {
+            put("isVisited", false)
+        }.toString()
+        
+        syncManager.enqueueSyncItem(
+            entityType = "route_stop",
+            entityId = stopId,
+            action = "undo_visit",
+            data = data
         )
     }
     
@@ -203,8 +242,24 @@ class RouteRepository @Inject constructor(
         routeDao.setActiveRoute(routeId)
     }
     
+    // OPTIMISTIC UPDATE: Complete route
     suspend fun completeRoute(routeId: String) {
-        routeDao.completeRoute(routeId, System.currentTimeMillis())
+        val completedAt = System.currentTimeMillis()
+        
+        // 1. Update local DB immediately
+        routeDao.completeRoute(routeId, completedAt)
+        
+        // 2. Queue background sync
+        val data = JSONObject().apply {
+            put("completedAt", completedAt)
+        }.toString()
+        
+        syncManager.enqueueSyncItem(
+            entityType = "route_completed",
+            entityId = routeId,
+            action = "complete",
+            data = data
+        )
     }
     
     // --- MAPPERS ---
@@ -225,7 +280,7 @@ class RouteRepository @Inject constructor(
                     orderIndex = stopWithBusiness.stop.orderIndex,
                     isVisited = stopWithBusiness.stop.isVisited,
                     visitedAt = stopWithBusiness.stop.visitedAt,
-                    notes = null, // Adjust if you add notes to RouteStopEntity later
+                    notes = stopWithBusiness.stop.notes,
                     business = stopWithBusiness.business.toDomain()
                 )
             }

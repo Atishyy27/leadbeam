@@ -1,7 +1,7 @@
 // feature/business/src/main/java/com/fieldflow/feature/business/data/mapper/BusinessMappers.kt
 package com.fieldflow.feature.business.data.mapper
 
-import com.fieldflow.core.database.entities.BusinessEntity
+import com.fieldflow.core.database.entity.BusinessEntity
 import com.fieldflow.core.network.dto.BusinessDetailDto
 import com.fieldflow.feature.business.domain.model.BusinessDetail
 import com.google.gson.Gson
