@@ -1,3 +1,4 @@
+// core/database/src/main/java/com/fieldflow/core/database/FieldFlowDatabase.kt
 package com.fieldflow.core.database
 
 import androidx.room.Database
@@ -22,7 +23,7 @@ import com.fieldflow.core.database.entity.RouteStopEntity
         RouteEntity::class,
         RouteStopEntity::class
     ],
-    version = 2, 
+    version = 3, // BUMPED to 3 to handle the Route schema
     exportSchema = true
 )
 @TypeConverters(Converters::class)

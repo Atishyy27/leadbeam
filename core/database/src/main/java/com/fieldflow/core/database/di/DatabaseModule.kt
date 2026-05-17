@@ -1,10 +1,12 @@
+// core/database/src/main/java/com/fieldflow/core/database/di/DatabaseModule.kt
 package com.fieldflow.core.database.di
-import com.fieldflow.core.database.dao.BusinessDao
-import com.fieldflow.core.database.dao.RouteDao
 
 import android.content.Context
 import androidx.room.Room
 import com.fieldflow.core.database.FieldFlowDatabase
+import com.fieldflow.core.database.dao.BusinessDao
+import com.fieldflow.core.database.dao.CategoryDao
+import com.fieldflow.core.database.dao.RouteDao
 import com.fieldflow.core.database.dao.UserDao
 import dagger.Module
 import dagger.Provides
@@ -25,8 +27,10 @@ object DatabaseModule {
         return Room.databaseBuilder(
             context,
             FieldFlowDatabase::class.java,
-            "fieldflow_cache.db"
-        ).fallbackToDestructiveMigration().build()
+            FieldFlowDatabase.DATABASE_NAME // Uses the constant we just added to the DB file
+        )
+        .fallbackToDestructiveMigration() // Will save your life during rapid prototyping
+        .build()
     }
 
     @Provides
@@ -43,7 +47,13 @@ object DatabaseModule {
 
     @Provides
     @Singleton
-    fun provideRouteDao(database: FieldFlowDatabase): com.fieldflow.core.database.dao.RouteDao {
+    fun provideCategoryDao(database: FieldFlowDatabase): CategoryDao {
+        return database.categoryDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideRouteDao(database: FieldFlowDatabase): RouteDao {
         return database.routeDao()
     }
 }
