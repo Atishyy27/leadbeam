@@ -1,0 +1,290 @@
+{
+  "groups": [
+    {
+      "id": "food_and_drink",
+      "name": "Food & Drink",
+      "color": "#FF6B35",
+      "categories": [
+        {
+          "id": "restaurant",
+          "name": "Restaurant"
+        },
+        {
+          "id": "coffee_shop",
+          "name": "Coffee Shop"
+        },
+        {
+          "id": "bar",
+          "name": "Bar / Pub"
+        },
+        {
+          "id": "bakery",
+          "name": "Bakery"
+        },
+        {
+          "id": "fast_food",
+          "name": "Fast Food"
+        },
+        {
+          "id": "ice_cream",
+          "name": "Ice Cream / Frozen Yogurt"
+        },
+        {
+          "id": "food_truck",
+          "name": "Food Truck"
+        }
+      ]
+    },
+    {
+      "id": "retail_and_shopping",
+      "name": "Retail & Shopping",
+      "color": "#4A90D9",
+      "categories": [
+        {
+          "id": "clothing_store",
+          "name": "Clothing Store"
+        },
+        {
+          "id": "grocery",
+          "name": "Grocery Store"
+        },
+        {
+          "id": "convenience",
+          "name": "Convenience Store"
+        },
+        {
+          "id": "electronics",
+          "name": "Electronics Store"
+        },
+        {
+          "id": "furniture",
+          "name": "Furniture Store"
+        },
+        {
+          "id": "bookstore",
+          "name": "Bookstore"
+        },
+        {
+          "id": "pet_store",
+          "name": "Pet Store"
+        }
+      ]
+    },
+    {
+      "id": "health_and_medical",
+      "name": "Health & Medical",
+      "color": "#2ECC71",
+      "categories": [
+        {
+          "id": "pharmacy",
+          "name": "Pharmacy"
+        },
+        {
+          "id": "dentist",
+          "name": "Dentist"
+        },
+        {
+          "id": "doctor",
+          "name": "Doctor / Clinic"
+        },
+        {
+          "id": "veterinarian",
+          "name": "Veterinarian"
+        },
+        {
+          "id": "optometrist",
+          "name": "Optometrist"
+        },
+        {
+          "id": "gym",
+          "name": "Gym / Fitness Center"
+        }
+      ]
+    },
+    {
+      "id": "automotive",
+      "name": "Automotive",
+      "color": "#E74C3C",
+      "categories": [
+        {
+          "id": "auto_repair",
+          "name": "Auto Repair"
+        },
+        {
+          "id": "car_dealer",
+          "name": "Car Dealer"
+        },
+        {
+          "id": "gas_station",
+          "name": "Gas Station"
+        },
+        {
+          "id": "car_wash",
+          "name": "Car Wash"
+        },
+        {
+          "id": "tire_shop",
+          "name": "Tire Shop"
+        },
+        {
+          "id": "auto_parts",
+          "name": "Auto Parts"
+        }
+      ]
+    },
+    {
+      "id": "professional_services",
+      "name": "Professional Services",
+      "color": "#9B59B6",
+      "categories": [
+        {
+          "id": "law_firm",
+          "name": "Law Firm"
+        },
+        {
+          "id": "accounting",
+          "name": "Accounting / CPA"
+        },
+        {
+          "id": "insurance",
+          "name": "Insurance Agency"
+        },
+        {
+          "id": "real_estate",
+          "name": "Real Estate"
+        },
+        {
+          "id": "marketing_agency",
+          "name": "Marketing Agency"
+        },
+        {
+          "id": "consulting",
+          "name": "Consulting"
+        }
+      ]
+    },
+    {
+      "id": "home_services",
+      "name": "Home Services",
+      "color": "#F39C12",
+      "categories": [
+        {
+          "id": "plumber",
+          "name": "Plumber"
+        },
+        {
+          "id": "electrician",
+          "name": "Electrician"
+        },
+        {
+          "id": "hvac",
+          "name": "HVAC"
+        },
+        {
+          "id": "landscaping",
+          "name": "Landscaping"
+        },
+        {
+          "id": "cleaning",
+          "name": "Cleaning Service"
+        },
+        {
+          "id": "pest_control",
+          "name": "Pest Control"
+        }
+      ]
+    },
+    {
+      "id": "beauty_and_personal",
+      "name": "Beauty & Personal Care",
+      "color": "#E91E90",
+      "categories": [
+        {
+          "id": "hair_salon",
+          "name": "Hair Salon"
+        },
+        {
+          "id": "nail_salon",
+          "name": "Nail Salon"
+        },
+        {
+          "id": "spa",
+          "name": "Spa"
+        },
+        {
+          "id": "barbershop",
+          "name": "Barbershop"
+        }
+      ]
+    },
+    {
+      "id": "education",
+      "name": "Education",
+      "color": "#1ABC9C",
+      "categories": [
+        {
+          "id": "school",
+          "name": "School"
+        },
+        {
+          "id": "tutoring",
+          "name": "Tutoring Center"
+        },
+        {
+          "id": "daycare",
+          "name": "Daycare / Childcare"
+        },
+        {
+          "id": "driving_school",
+          "name": "Driving School"
+        }
+      ]
+    },
+    {
+      "id": "entertainment",
+      "name": "Entertainment & Recreation",
+      "color": "#3498DB",
+      "categories": [
+        {
+          "id": "movie_theater",
+          "name": "Movie Theater"
+        },
+        {
+          "id": "bowling",
+          "name": "Bowling Alley"
+        },
+        {
+          "id": "escape_room",
+          "name": "Escape Room"
+        },
+        {
+          "id": "arcade",
+          "name": "Arcade"
+        }
+      ]
+    },
+    {
+      "id": "financial",
+      "name": "Financial Services",
+      "color": "#27AE60",
+      "categories": [
+        {
+          "id": "bank",
+          "name": "Bank"
+        },
+        {
+          "id": "credit_union",
+          "name": "Credit Union"
+        },
+        {
+          "id": "tax_prep",
+          "name": "Tax Preparation"
+        },
+        {
+          "id": "financial_advisor",
+          "name": "Financial Advisor"
+        }
+      ]
+    }
+  ]
+}
