@@ -41,6 +41,19 @@ fun MapScreen(
     // Track which business is currently selected for the Bottom Sheet
     var selectedBusiness by remember { mutableStateOf<MapBusinessItem?>(null) }
 
+    var isLocationGranted by remember { mutableStateOf(false) }
+
+    com.fieldflow.feature.map.ui.components.LocationPermissionHandler(
+        onPermissionResult = { granted ->
+            isLocationGranted = granted
+        }
+    )
+
+    // Later, inside your GoogleMap() composable, update the properties:
+    properties = com.google.maps.android.compose.MapProperties(
+        isMyLocationEnabled = isLocationGranted // Turns on the Blue Dot and default location button!
+    )
+
     // Default target: Austin, TX (Based on the Mock API data spec)
     val defaultLocation = LatLng(30.2672, -97.7431)
     val cameraPositionState = rememberCameraPositionState {
