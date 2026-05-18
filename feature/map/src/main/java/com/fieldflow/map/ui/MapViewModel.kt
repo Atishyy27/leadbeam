@@ -6,26 +6,27 @@ import com.fieldflow.feature.map.domain.model.MapBusinessItem
 import com.google.android.gms.maps.model.LatLngBounds
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
+
 import javax.inject.Inject
 
 @OptIn(FlowPreview::class)
 @HiltViewModel
 class MapViewModel @Inject constructor(
-    private val getBusinessesInBoundsUseCase: com.fieldflow.feature.map.domain.usecase.GetBusinessesInBoundsUseCase
+    private val getBusinessesInBoundsUseCase: com.fieldflow.feature.map.domain.usecase.GetBusinessesInBoundsUseCase,
     private val routeDao: com.fieldflow.core.database.dao.RouteDao
 ) : ViewModel() {
     
     private var fetchJob: kotlinx.coroutines.Job? = null
-    private val _visibleBusinesses = MutableStateFlow<List<MapBusinessItem>>(emptyList())
-    val visibleBusinesses: StateFlow<List<MapBusinessItem>> = _visibleBusinesses.asStateFlow()
-
+    
     // 1. Add these variables to hold our raw data and filter states
     private val _rawBusinesses = MutableStateFlow<List<MapBusinessItem>>(emptyList())
     
@@ -61,12 +62,18 @@ class MapViewModel @Inject constructor(
             _isLoading.value = true
             try {
                 getBusinessesInBoundsUseCase(bounds).collect { businesses ->
+                    // Explicit diagnostic trace to check parsing success
+                    println("FIELDFLOW_DEBUG: UseCase collected ${businesses.size} items")
+                    if (businesses.isNotEmpty()) {
+                        println("FIELDFLOW_DEBUG: Sample item name = ${businesses.first().businessName}")
+                    }
+                    
                     _rawBusinesses.value = businesses
                     _isOffline.value = false // Success means we are online
                 }
             } catch (e: Exception) {
-                // If the API fails, we show the offline indicator!
-                _isOffline.value = true 
+                println("FIELDFLOW_DEBUG: Exception inside collection block: ${e.message}")
+                _isOffline.value = true
             } finally {
                 _isLoading.value = false
             }
@@ -102,35 +109,43 @@ class MapViewModel @Inject constructor(
     fun addBusinessToRoute(business: MapBusinessItem) {
         viewModelScope.launch {
             try {
-                // 1. Get or Create an Active Route
-                var activeRoute = routeDao.getActiveRoute()
-                if (activeRoute == null) {
+                // 1. Get Active Route Entity synchronously via suspend function
+                val activeRoute = routeDao.getActiveRouteEntity()
+                val activeRouteId = if (activeRoute == null) {
                     val routeId = "route_${System.currentTimeMillis()}"
-                    activeRoute = com.fieldflow.core.database.entity.RouteEntity(
+                    val newRoute = com.fieldflow.core.database.entity.RouteEntity(
                         id = routeId,
-                        date = System.currentTimeMillis(),
-                        status = "active"
+                        name = "Today's Route",
+                        date = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date()),
+                        status = "active",
+                        isActive = true,
+                        createdAt = System.currentTimeMillis()
                     )
-                    routeDao.insertRoute(activeRoute)
+                    routeDao.insertRoute(newRoute)
+                    routeId
+                } else {
+                    activeRoute.id
                 }
 
-                // 2. Figure out what stop number this is (Order Index)
-                val stopCount = routeDao.getStopCountForRoute(activeRoute.id)
+                // 2. Fetch the stop count using the extracted String ID
+                val stopCount = routeDao.getStopCountForRoute(activeRouteId)
 
-                // 3. Save the Business as a Stop
+                // 3. Construct RouteStopEntity to match your exact columns (String id, no lat/long/name fields)
                 val stop = com.fieldflow.core.database.entity.RouteStopEntity(
-                    routeId = activeRoute.id,
-                    businessId = business.leadbeamId,
+                    id = "stop_${System.currentTimeMillis()}",
+                    routeId = activeRouteId,
+                    businessId = business.id,
                     businessName = business.businessName,
-                    lat = business.lat,
-                    long = business.long,
-                    orderIndex = stopCount // Appends to the end of the route
+                    lat = business.location.latitude,
+                    long = business.location.longitude,
+                    orderIndex = stopCount,
+                    isVisited = false,
+                    visitedAt = null,
+                    notes = null
                 )
                 routeDao.insertRouteStop(stop)
 
-                println("MATRIX MODE: Successfully saved ${business.businessName} to DB as Stop #${stopCount + 1}")
-                // (Optional: send a UI Event to show a "Added to Route!" Snackbar)
-                
+                println("MATRIX MODE: Successfully saved stop to DB")
             } catch (e: Exception) {
                 println("MATRIX MODE ERROR saving to route: ${e.message}")
             }

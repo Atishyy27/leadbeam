@@ -3,7 +3,7 @@ package com.fieldflow.feature.map.data.repository
 import com.fieldflow.core.database.dao.BusinessDao
 import com.fieldflow.core.database.entity.BusinessEntity
 import com.fieldflow.core.network.api.ApiService
-import com.fieldflow.core.network.model.NearbyResponse
+import com.fieldflow.core.network.dto.NearbyResponse
 import com.google.android.gms.maps.model.LatLngBounds
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -37,34 +37,28 @@ class BusinessRepositoryImpl @Inject constructor(
                 endLong = bounds.northeast.longitude
             )
 
-            val apiResponse = response.body() // ✅ Get the ApiResponse wrapper
-            if (apiResponse?.status == 200 && apiResponse.data != null) {
-                when (val data = apiResponse.data) {
-                    is NearbyResponse.Individual -> {
-                        val entities = data.businesses.map { dto ->
-                            BusinessEntity(
-                                leadbeamId = dto.leadbeamId,
-                                name = dto.name,
-                                lat = dto.lat,
-                                long = dto.long,
-                                latGrid = floor(dto.lat / CELL_SIZE_DEGREES).toInt(),
-                                longGrid = floor(dto.long / CELL_SIZE_DEGREES).toInt(),
-                                category = dto.categoryPrimary ?: "Unknown",
-                                isChain = dto.isChain,
-                                rating = dto.rating,
-                                overallConfidence = dto.overallConfidence
-                            )
-                        }
-                        businessDao.insertBusinesses(entities)
-                        
-                        val updatedCache = businessDao.getBusinessesInGrid(minLatGrid, maxLatGrid, minLongGrid, maxLongGrid)
-                        emit(updatedCache)
-                    }
-                    is NearbyResponse.Clustered -> {
-                        // Handled by UI layer
-                    }
-                    else -> { } 
+            val apiResponse = response.body()
+            val nearbyData = apiResponse?.data
+
+            if (nearbyData != null) {
+                val entities = nearbyData.businesses.map { dto ->
+                    BusinessEntity(
+                        leadbeamId = dto.leadbeamId,
+                        name = dto.name,
+                        lat = dto.lat,
+                        long = dto.long,
+                        latGrid = floor(dto.lat / CELL_SIZE_DEGREES).toInt(),
+                        longGrid = floor(dto.long / CELL_SIZE_DEGREES).toInt(),
+                        category = dto.categoryPrimary ?: "Unknown",
+                        isChain = dto.isChain,
+                        rating = dto.rating,
+                        overallConfidence = dto.overallConfidence
+                    )
                 }
+                businessDao.insertBusinesses(entities)
+
+                val updatedCache = businessDao.getBusinessesInGrid(minLatGrid, maxLatGrid, minLongGrid, maxLongGrid)
+                emit(updatedCache)
             }
         } catch (e: Exception) {
             // Fails silently

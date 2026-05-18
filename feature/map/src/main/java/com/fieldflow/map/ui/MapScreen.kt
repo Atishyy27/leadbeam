@@ -75,7 +75,7 @@ fun MapScreen(
                     contentDescription = "${business.businessName}, ${business.category}", // A11y description
                     onClick = {
                         selectedBusiness = business
-                        onBusinessClick(business.leadbeamId)
+                        onBusinessClick(business.id)
                         false
                     }
                 )
