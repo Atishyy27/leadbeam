@@ -1,7 +1,8 @@
 package com.fieldflow.core.network.di
 
 import com.google.gson.GsonBuilder
-import com.fieldflow.core.network.model.NearbyResponse
+
+import com.fieldflow.core.network.dto.NearbyResponse
 import com.fieldflow.core.network.model.NearbyResponseDeserializer
 
 import com.fieldflow.core.network.api.ApiService
@@ -23,7 +24,7 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
-    private const val BASE_URL = "http://192.168.1.9:3000/api/" // Standard Android Emulator Localhost loopback
+    private const val BASE_URL = "http://localhost:3000/api/" // Standard Android Emulator Localhost loopback
 
     @Provides
     @Singleton
