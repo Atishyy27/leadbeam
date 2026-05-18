@@ -9,8 +9,17 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Business
+import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.filled.Route
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -21,6 +30,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.work.*
 import com.fieldflow.core.common.connectivity.NetworkMonitor
@@ -54,7 +65,6 @@ class MainViewModel @Inject constructor(
         )
     
     init {
-        // Trigger sync when coming online
         viewModelScope.launch {
             networkMonitor.isOnline.collect { online ->
                 if (online) {
@@ -62,8 +72,6 @@ class MainViewModel @Inject constructor(
                 }
             }
         }
-        
-        // Schedule periodic cache cleanup
         scheduleCacheCleanup()
     }
     
@@ -101,41 +109,109 @@ class MainActivity : ComponentActivity() {
                 var startDestination by remember { mutableStateOf<String?>(null) }
                 val isOnline by viewModel.isOnline.collectAsState()
 
-                // Cold boot lifecycle verification
                 LaunchedEffect(Unit) {
                     val isSessionActive = checkSessionUseCase()
                     startDestination = if (isSessionActive) {
-                        Screen.Map.route // Using Map.route as defined in your merged NavGraph
+                        Screen.Map.route
                     } else {
                         Screen.Login.route
                     }
                 }
                 
-                Scaffold(
-                    modifier = Modifier.fillMaxSize()
-                ) { padding ->
-                    Column(modifier = Modifier.padding(padding)) {
-                        
-                        OfflineBanner(isOffline = !isOnline)
-                        
-                        val finalDestination = startDestination
-                        if (finalDestination != null) {
-                            FieldFlowNavHost(
-                                navController = navController,
-                                startDestination = finalDestination
-                            )
-                        } else {
-                            // Centered system loader displayed while thread validation finishes
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator()
-                            }
-                        }
+                val finalDestination = startDestination
+                if (finalDestination != null) {
+                    AppScaffoldWithBottomNav(
+                        navController = navController,
+                        startDestination = finalDestination,
+                        isOnline = isOnline
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun AppScaffoldWithBottomNav(
+    navController: NavHostController,
+    startDestination: String,
+    isOnline: Boolean
+) {
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+    
+    // Hide bottom bar on login, business detail, route detail, route execution, and create route
+    val showBottomBar = currentRoute != null &&
+        currentRoute != Screen.Login.route &&
+        !currentRoute.startsWith("business/") &&
+        currentRoute != Screen.CreateRoute.route &&
+        !currentRoute.startsWith("route/execution") &&
+        !currentRoute.startsWith("route/{routeId}")  // hide on detail too for cleaner UX
+    
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        bottomBar = {
+            if (showBottomBar) {
+                NavigationBar {
+                    // Map Tab
+                    NavigationBarItem(
+                        icon = { Icon(Icons.Filled.Map, contentDescription = "Map") },
+                        label = { Text("Map") },
+                        selected = currentRoute == Screen.Map.route,
+                        onClick = {
+                            navController.navigate(Screen.Map.route) {
+                                popUpTo(Screen.Map.route) { inclusive = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                    )
+                    
+                    // Businesses Tab
+                    NavigationBarItem(
+                        icon = { Icon(Icons.Filled.Business, contentDescription = "Businesses") },
+                        label = { Text("Businesses") },
+                        selected = currentRoute == Screen.BusinessList.route,
+                        onClick = {
+                            navController.navigate(Screen.BusinessList.route) {
+                                popUpTo(Screen.Map.route)
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                    )
+                    
+                    // Routes Tab — FIXED: Screen.RoutesList.route (not Screen.RouteList)
+                    NavigationBarItem(
+                        icon = { Icon(Icons.Filled.Route, contentDescription = "Routes") },
+                        label = { Text("Routes") },
+                        selected = currentRoute == Screen.RoutesList.route,
+                        onClick = {
+                            navController.navigate(Screen.RoutesList.route) {
+                                popUpTo(Screen.Map.route)
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                    )
+                }
+            }
+        }
+    ) { padding ->
+        Column(modifier = Modifier.padding(padding)) {
+            OfflineBanner(isOffline = !isOnline)
+            
+            FieldFlowNavHost(
+                navController = navController,
+                startDestination = startDestination
+            )
         }
     }
 }

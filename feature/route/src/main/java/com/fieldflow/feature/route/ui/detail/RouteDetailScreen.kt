@@ -6,7 +6,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -14,85 +13,31 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.fieldflow.feature.route.ui.components.OptimizationDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RouteDetailScreen(
     onNavigateBack: () -> Unit,
+    onStartExecution: (String) -> Unit,
     viewModel: RouteDetailViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val snackbarHostState = remember { SnackbarHostState() }
-    
-    LaunchedEffect(Unit) {
-        viewModel.events.collect { event ->
-            when (event) {
-                is RouteDetailEvent.ShowError -> {
-                    snackbarHostState.showSnackbar(event.message)
-                }
-                is RouteDetailEvent.ShowSuccess -> {
-                    snackbarHostState.showSnackbar(event.message)
-                }
-            }
-        }
-    }
-    
+    val uiState by viewModel.uiState.collectAsState()
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { 
-                    when (val state = uiState) {
-                        is RouteDetailUiState.Success -> Text(state.route.name)
-                        else -> Text("Route Details")
-                    }
-                },
+                title = { Text("Route Details") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
                     }
-                },
-                actions = {
-                    when (val state = uiState) {
-                        is RouteDetailUiState.Success -> {
-                            // NEW: Start Route Button
-                            if (!state.route.isCompleted && state.route.stops.isNotEmpty()) {
-                                IconButton(onClick = { viewModel.startExecution() }) {
-                                    Icon(Icons.Filled.PlayArrow, "Start route")
-                                }
-                            }
-                            
-                            // EXISTING: Optimize Button
-                            if (!state.route.isCompleted) {
-                                IconButton(
-                                    onClick = { viewModel.optimizeRoute() },
-                                    enabled = !state.isOptimizing
-                                ) {
-                                    if (state.isOptimizing) {
-                                        CircularProgressIndicator(
-                                            modifier = Modifier.size(24.dp),
-                                            strokeWidth = 2.dp
-                                        )
-                                    } else {
-                                        Icon(Icons.Filled.AutoAwesome, "Optimize")
-                                    }
-                                }
-                            }
-                        }
-                        else -> {}
-                    }
                 }
             )
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        }
     ) { padding ->
         when (val state = uiState) {
             is RouteDetailUiState.Loading -> {
-                Box(
-                    modifier = Modifier.fillMaxSize().padding(padding),
-                    contentAlignment = Alignment.Center
-                ) {
+                Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
             }
@@ -102,133 +47,110 @@ fun RouteDetailScreen(
                         .fillMaxSize()
                         .padding(padding)
                 ) {
-                    // Route info card
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp)
+                    // Route header
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        color = MaterialTheme.colorScheme.primaryContainer
                     ) {
                         Column(Modifier.padding(16.dp)) {
                             Text(
-                                text = "${state.route.stopCount} stops",
-                                style = MaterialTheme.typography.titleMedium
+                                text = state.route.name,
+                                style = MaterialTheme.typography.headlineMedium
                             )
-                            Spacer(Modifier.height(4.dp))
                             Text(
-                                text = "Date: ${state.route.date}",
+                                text = "${state.route.stops.size} stops • ${state.route.date}",
                                 style = MaterialTheme.typography.bodyMedium
                             )
-                            
-                            state.route.totalDistance?.let { distance ->
-                                Spacer(Modifier.height(4.dp))
-                                Text(
-                                    text = "Distance: ${String.format("%.1f", distance)} miles",
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                            }
-                            
-                            state.route.totalDuration?.let { duration ->
-                                Spacer(Modifier.height(4.dp))
-                                Text(
-                                    text = "Duration: ${duration} minutes",
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                            }
                         }
                     }
-                    
+
+                    // PROMINENT START BUTTON
+                    Button(
+                        onClick = { onStartExecution(state.route.id) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                            .height(56.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Icon(Icons.Default.PlayArrow, contentDescription = null)
+                        Spacer(Modifier.width(8.dp))
+                        Text("Start Route", style = MaterialTheme.typography.titleMedium)
+                    }
+
                     // Stops list
                     LazyColumn(
                         modifier = Modifier.weight(1f),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                        contentPadding = PaddingValues(16.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        itemsIndexed(state.route.stops, key = { _, stop -> stop.id }) { index, stop ->
-                            RouteStopCard(
-                                stop = stop,
-                                index = index
-                            )
+                        itemsIndexed(state.route.stops) { index, stop ->
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = if (stop.isVisited)
+                                        MaterialTheme.colorScheme.surfaceVariant
+                                    else
+                                        MaterialTheme.colorScheme.surface
+                                )
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        // FIX: stop.business.name (not stop.businessName)
+                                        Text(
+                                            text = "${index + 1}. ${stop.business.name}",
+                                            style = MaterialTheme.typography.titleMedium
+                                        )
+                                        
+                                        // Address with null safety
+                                        val addressParts = listOfNotNull(
+                                            stop.business.addressFull.takeIf { it.isNotBlank() },
+                                            listOfNotNull(
+                                                stop.business.city.takeIf { it.isNotBlank() },
+                                                stop.business.state.takeIf { it.isNotBlank() }
+                                            ).joinToString(", ").takeIf { it.isNotBlank() }
+                                        )
+                                        
+                                        if (addressParts.isNotEmpty()) {
+                                            Text(
+                                                text = addressParts.joinToString("\n"),
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+
+                                        if (stop.isVisited) {
+                                            Spacer(Modifier.height(4.dp))
+                                            Text(
+                                                text = "✓ Visited",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.primary
+                                            )
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
-                }
-                
-                // Optimization dialog
-                if (state.optimizationResult != null) {
-                    OptimizationDialog(
-                        result = state.optimizationResult,
-                        onAccept = {
-                            viewModel.acceptOptimization()
-                        },
-                        onDismiss = {
-                            viewModel.dismissOptimization()
-                        }
-                    )
                 }
             }
             is RouteDetailUiState.Error -> {
-                Box(
-                    modifier = Modifier.fillMaxSize().padding(padding),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(state.message, color = MaterialTheme.colorScheme.error)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun RouteStopCard(
-    stop: com.fieldflow.feature.route.data.model.RouteStop,
-    index: Int
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Surface(
-                color = if (stop.isVisited) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    MaterialTheme.colorScheme.surfaceVariant
-                },
-                shape = MaterialTheme.shapes.small
-            ) {
-                Text(
-                    text = "${index + 1}",
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = if (stop.isVisited) {
-                        MaterialTheme.colorScheme.onPrimary
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
+                Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(state.message)
+                        Spacer(Modifier.height(16.dp))
+                        Button(onClick = { /* Retry */ }) {
+                            Text("Retry")
+                        }
                     }
-                )
-            }
-            
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = stop.business.name,
-                    style = MaterialTheme.typography.bodyLarge
-                )
-                Text(
-                    text = stop.business.addressFull,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                
-                if (stop.isVisited) {
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        text = "✓ Visited",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.primary
-                    )
                 }
             }
         }

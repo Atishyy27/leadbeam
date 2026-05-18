@@ -1,7 +1,7 @@
-// app/src/main/java/com/fieldflow/navigation/NavGraph.kt
 package com.fieldflow.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -10,26 +10,32 @@ import androidx.navigation.navArgument
 import com.fieldflow.feature.auth.ui.LoginScreen
 import com.fieldflow.feature.business.ui.detail.BusinessDetailScreen
 import com.fieldflow.feature.business.ui.list.BusinessListScreen
+import com.fieldflow.feature.map.ui.MapScreen
 import com.fieldflow.feature.route.ui.create.CreateRouteScreen
 import com.fieldflow.feature.route.ui.detail.RouteDetailScreen
 import com.fieldflow.feature.route.ui.execution.RouteExecutionScreen
 import com.fieldflow.feature.route.ui.list.RoutesListScreen
-import com.fieldflow.feature.map.ui.MapScreen
-import androidx.hilt.navigation.compose.hiltViewModel
 
 sealed class Screen(val route: String) {
     object Login : Screen("login")
     object Map : Screen("map")
     object BusinessList : Screen("business_list")
+    
     object BusinessDetail : Screen("business/{businessId}") {
         fun createRoute(businessId: String) = "business/$businessId"
     }
+    
     object RoutesList : Screen("routes")
     object CreateRoute : Screen("create_route")
-    object RouteDetail : Screen("route/{routeId}") {
-        fun createRoute(routeId: String) = "route/$routeId"
+    
+    object RouteDetail : Screen("route_detail/{routeId}") {
+        fun createRoute(routeId: String) = "route_detail/$routeId"
     }
-    object RouteExecution : Screen("route/execution")
+    
+    // RouteExecution now correctly takes a routeId argument
+    object RouteExecution : Screen("route_execution/{routeId}") {
+        fun createRoute(routeId: String) = "route_execution/$routeId"
+    }
 }
 
 @Composable
@@ -44,7 +50,7 @@ fun FieldFlowNavHost(
         // --- AUTH ---
         composable(Screen.Login.route) {
             LoginScreen(
-                viewModel = hiltViewModel(),  // ✅ Added
+                viewModel = hiltViewModel(),
                 onLoginSuccessNavigation = {
                     navController.navigate(Screen.Map.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
@@ -56,14 +62,13 @@ fun FieldFlowNavHost(
         // --- MAP ---
         composable(Screen.Map.route) {
             MapScreen(
-                viewModel = hiltViewModel(),  // ✅ Added
-                onNavigateToList = {  // ✅ Fixed parameter name
+                viewModel = hiltViewModel(),
+                onNavigateToList = {
                     navController.navigate(Screen.BusinessList.route)
                 },
                 onBusinessClick = { businessId ->
                     navController.navigate(Screen.BusinessDetail.createRoute(businessId))
                 }
-                // ✅ Removed onNavigateToRoutes - doesn't exist on MapScreen
             )
         }
         
@@ -86,7 +91,7 @@ fun FieldFlowNavHost(
             )
         }
         
-        // --- ROUTING (BLOCK 2C & PHASE 3) ---
+        // --- ROUTING ---
         composable(Screen.RoutesList.route) {
             RoutesListScreen(
                 onNavigateBack = { navController.popBackStack() },
@@ -94,7 +99,7 @@ fun FieldFlowNavHost(
                     navController.navigate(Screen.CreateRoute.route)
                 },
                 onRouteClick = { routeId ->
-                    navController.navigate(Screen.RouteDetail.createRoute(routeId)) 
+                    navController.navigate(Screen.RouteDetail.createRoute(routeId))
                 }
             )
         }
@@ -108,16 +113,24 @@ fun FieldFlowNavHost(
             )
         }
         
+        // FIX: Wired RouteDetail -> RouteExecution with proper routeId passing
         composable(
             route = Screen.RouteDetail.route,
             arguments = listOf(navArgument("routeId") { type = NavType.StringType })
-        ) {
+        ) { 
             RouteDetailScreen(
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStack() },
+                onStartExecution = { routeId ->
+                    navController.navigate(Screen.RouteExecution.createRoute(routeId))
+                }
             )
         }
         
-        composable(Screen.RouteExecution.route) {
+        // FIX: RouteExecutionScreen destination catches the routeId
+        composable(
+            route = Screen.RouteExecution.route,
+            arguments = listOf(navArgument("routeId") { type = NavType.StringType })
+        ) {
             RouteExecutionScreen(
                 onNavigateBack = { navController.popBackStack() }
             )

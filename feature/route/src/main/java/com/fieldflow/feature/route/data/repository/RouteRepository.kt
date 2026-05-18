@@ -61,9 +61,9 @@ class RouteRepository @Inject constructor(
                 id = "stop_${UUID.randomUUID()}",
                 routeId = routeId,
                 businessId = businessId,
-                businessName = business.name,      // ✅ Added
-                lat = business.lat,                 // ✅ Added
-                long = business.long,               // ✅ Added
+                businessName = business.name,      // Added
+                lat = business.lat,                 // Added
+                long = business.long,               // Added
                 orderIndex = index,
                 isVisited = false,
                 visitedAt = null,
