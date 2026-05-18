@@ -7,7 +7,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.fieldflow.core.database.dao.RouteDao
 import com.fieldflow.core.database.dao.SyncQueueDao
-import com.fieldflow.core.network.ApiService
+import com.fieldflow.core.network.api.ApiService
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
@@ -62,7 +62,7 @@ class SyncWorker @AssistedInject constructor(
         }
     }
     
-    private suspend fun syncRouteStop(item: com.fieldflow.core.database.entities.SyncQueueEntity) {
+    private suspend fun syncRouteStop(item: com.fieldflow.core.database.entity.SyncQueueEntity) {
         val data = JSONObject(item.data ?: "{}")
         val stopId = item.entityId
         val isVisited = data.getBoolean("isVisited")
@@ -73,7 +73,7 @@ class SyncWorker @AssistedInject constructor(
         // apiService.updateRouteStop(stopId, isVisited, visitedAt)
     }
     
-    private suspend fun syncBusinessFavorite(item: com.fieldflow.core.database.entities.SyncQueueEntity) {
+    private suspend fun syncBusinessFavorite(item: com.fieldflow.core.database.entity.SyncQueueEntity) {
         val data = JSONObject(item.data ?: "{}")
         val businessId = item.entityId
         val isFavorite = data.getBoolean("isFavorite")
@@ -82,7 +82,7 @@ class SyncWorker @AssistedInject constructor(
         // apiService.updateBusinessFavorite(businessId, isFavorite)
     }
     
-    private suspend fun syncBusinessHidden(item: com.fieldflow.core.database.entities.SyncQueueEntity) {
+    private suspend fun syncBusinessHidden(item: com.fieldflow.core.database.entity.SyncQueueEntity) {
         val data = JSONObject(item.data ?: "{}")
         val businessId = item.entityId
         val isHidden = data.getBoolean("isHidden")
@@ -91,7 +91,7 @@ class SyncWorker @AssistedInject constructor(
         // apiService.updateBusinessHidden(businessId, isHidden)
     }
     
-    private suspend fun syncRouteCompleted(item: com.fieldflow.core.database.entities.SyncQueueEntity) {
+    private suspend fun syncRouteCompleted(item: com.fieldflow.core.database.entity.SyncQueueEntity) {
         val data = JSONObject(item.data ?: "{}")
         val routeId = item.entityId
         val completedAt = data.getLong("completedAt")

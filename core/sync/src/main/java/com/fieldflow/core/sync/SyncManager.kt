@@ -3,9 +3,12 @@ package com.fieldflow.core.sync
 
 import androidx.work.*
 import com.fieldflow.core.database.dao.SyncQueueDao
-import com.fieldflow.core.database.entities.SyncQueueEntity
+import com.fieldflow.core.database.entity.SyncQueueEntity
 import com.fieldflow.core.sync.workers.SyncWorker
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -17,13 +20,14 @@ class SyncManager @Inject constructor(
     private val syncQueueDao: SyncQueueDao
 ) {
     
+    @OptIn(DelicateCoroutinesApi::class)
     fun enqueueSyncItem(
         entityType: String,
         entityId: String,
         action: String,
         data: String? = null
     ) {
-        kotlinx.coroutines.GlobalScope.launch {
+        GlobalScope.launch {
             val item = SyncQueueEntity(
                 id = UUID.randomUUID().toString(),
                 entityType = entityType,
