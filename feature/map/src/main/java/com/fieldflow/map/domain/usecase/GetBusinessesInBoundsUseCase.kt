@@ -11,9 +11,9 @@ import javax.inject.Inject
 class GetBusinessesInBoundsUseCase @Inject constructor(
     private val repository: BusinessRepository
 ) {
-    // ✅ FIX: Add categoryGroup to signature
+    // FIX: Add categoryGroup to signature
     operator fun invoke(bounds: LatLngBounds, categoryGroup: String? = null): Flow<List<MapBusinessItem>> {
-        // ✅ FIX: Pass categoryGroup (camelCase)
+        // FIX: Pass categoryGroup (camelCase)
         return repository.getBusinessesInBounds(bounds, categoryGroup).map { entities ->
             entities
                 .filter { it.overallConfidence > 0.7 } // Drop low-quality data
