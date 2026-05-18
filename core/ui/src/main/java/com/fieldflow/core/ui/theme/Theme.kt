@@ -44,7 +44,7 @@ fun FieldFlowTheme(
     
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography,
+        typography = androidx.compose.material3.Typography(), // <-- Added explicit package and ()
         content = content
     )
 }

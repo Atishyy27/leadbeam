@@ -28,10 +28,15 @@ android {
 }
 
 dependencies {
+
+    implementation(project(":feature:auth"))
+    implementation(project(":core:database"))
+implementation(project(":core:datastore"))
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
     implementation(libs.androidx.material3)
 
     implementation(libs.hilt.android)
+    
     ksp(libs.hilt.compiler)
 }

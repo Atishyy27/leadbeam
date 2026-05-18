@@ -2,8 +2,8 @@
 package com.fieldflow.feature.business.data
 
 import com.fieldflow.core.database.dao.BusinessDao
-import com.fieldflow.core.database.entities.BusinessEntity
-import com.fieldflow.core.network.ApiService
+import com.fieldflow.core.database.entity.BusinessEntity
+import com.fieldflow.core.network.api.ApiService
 import com.fieldflow.core.sync.SyncManager
 import io.mockk.*
 import kotlinx.coroutines.flow.first

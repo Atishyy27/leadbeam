@@ -2,7 +2,7 @@
 package com.fieldflow.feature.auth.data
 
 import com.fieldflow.core.datastore.TokenManager
-import com.fieldflow.core.network.ApiService
+import com.fieldflow.core.network.api.ApiService
 import com.fieldflow.core.network.dto.LoginRequest
 import com.fieldflow.core.network.dto.LoginResponse
 import com.fieldflow.core.network.dto.TokenData
