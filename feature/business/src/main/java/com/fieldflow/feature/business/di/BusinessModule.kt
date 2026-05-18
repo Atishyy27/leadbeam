@@ -1,8 +1,8 @@
-// feature/business/src/main/java/com/fieldflow/feature/business/di/BusinessModule.kt
 package com.fieldflow.feature.business.di
 
 import com.fieldflow.core.database.dao.BusinessDao
-import com.fieldflow.core.network.ApiService
+import com.fieldflow.core.network.api.ApiService
+import com.fieldflow.core.sync.SyncManager
 import com.fieldflow.feature.business.data.repository.BusinessRepository
 import dagger.Module
 import dagger.Provides
@@ -17,7 +17,12 @@ object BusinessModule {
     @Provides
     @Singleton
     fun provideBusinessRepository(
+        businessDao: BusinessDao,
         apiService: ApiService,
-        businessDao: BusinessDao
-    ): BusinessRepository = BusinessRepository(apiService, businessDao)
+        syncManager: SyncManager
+    ): BusinessRepository = BusinessRepository(
+        businessDao = businessDao,
+        apiService = apiService,
+        syncManager = syncManager
+    )
 }

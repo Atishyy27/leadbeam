@@ -2,8 +2,10 @@
 package com.fieldflow.feature.business.data.repository
 
 import com.fieldflow.core.database.dao.BusinessDao
-import com.fieldflow.core.database.entities.BusinessEntity
-import com.fieldflow.core.network.ApiService
+import com.fieldflow.core.database.entity.BusinessEntity
+import com.fieldflow.core.network.api.ApiService
+import com.fieldflow.core.network.dto.NearbyResponse
+import com.fieldflow.core.network.dto.BusinessDetailResponse
 import com.fieldflow.core.sync.SyncManager
 import com.fieldflow.feature.business.data.mapper.toDomain
 import com.fieldflow.feature.business.data.mapper.toEntity
@@ -28,7 +30,6 @@ class BusinessRepository @Inject constructor(
     private val syncManager: SyncManager
 ) {
     
-    // OFFLINE-FIRST: Emit cached immediately, fetch fresh in background
     fun getBusinessesInBounds(
         minLat: Double,
         maxLat: Double,
@@ -39,10 +40,8 @@ class BusinessRepository @Inject constructor(
         var hasFetched = false
         
         businessDao.getBusinessesInBounds(minLat, maxLat, minLong, maxLong).collect { cached ->
-            // 1. Always emit cached data first
             emit(cached.map { it.toDomain() })
             
-            // 2. Fetch fresh if cache stale or forced refresh (Run only once per flow collection)
             if (!hasFetched) {
                 hasFetched = true
                 val cacheAge = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(1)
@@ -59,36 +58,32 @@ class BusinessRepository @Inject constructor(
                             endLong = maxLong
                         )
                         
-                        if (response.isSuccessful) {
-                            val body = response.body()
-                            if (body != null) {
-                                val timestamp = System.currentTimeMillis()
-                                val entities = body.data.businesses.map { dto ->
-                                    dto.toEntity().copy(lastFetched = timestamp)
-                                }
-                                businessDao.insertAll(entities)
-                                // Room auto-emits updated data through Flow
+                        val apiResponse = response.body()
+                        val nearbyData = apiResponse?.data
+
+                        if (nearbyData != null) {
+                            val timestamp = System.currentTimeMillis()
+                            val entities = nearbyData.businesses.map { dto ->
+                                dto.toEntity().copy(lastFetched = timestamp)
                             }
+                            businessDao.insertAll(entities)
                         }
                     } catch (e: Exception) {
-                        // Cached data already emitted, silent failure for background sync
+                        // Silent failure
                     }
                 }
             }
         }
     }
     
-    // OFFLINE-FIRST: Detail screen
     fun getBusinessDetail(businessId: String): Flow<Result<BusinessDetail>> = flow {
         var hasFetched = false
         
         businessDao.getByIdFlow(businessId).collect { cached ->
-            // 1. Emit cached immediately if available
             if (cached != null) {
                 emit(Result.Success(cached.toDomain()))
             }
             
-            // 2. Fetch fresh if cache older than 24 hours
             if (!hasFetched) {
                 hasFetched = true
                 val shouldFetch = cached == null || 
@@ -97,25 +92,23 @@ class BusinessRepository @Inject constructor(
                 if (shouldFetch) {
                     try {
                         val response = apiService.getBusinessDetail(businessId)
-                        if (response.isSuccessful) {
-                            val body = response.body()
-                            if (body != null) {
-                                // Fallback to raw entity if cached is null to satisfy mapper
-                                val entity = body.data.toEntity(cached).copy(
-                                    detailsCachedAt = System.currentTimeMillis(),
-                                    lastFetched = System.currentTimeMillis()
-                                )
-                                businessDao.insert(entity)
-                                // Room auto-emits updated data
-                            } else if (cached == null) {
-                                emit(Result.Error("Response body was empty"))
-                            }
+                        
+                        val apiResponse = response.body()
+                        val detailResponse = apiResponse?.data
+                        val detailDto = detailResponse?.data
+
+                        if (detailDto != null) {
+                            val entity = detailDto.toEntity(cached).copy(
+                                detailsCachedAt = System.currentTimeMillis(),
+                                lastFetched = System.currentTimeMillis()
+                            )
+                            businessDao.insert(entity)
                         } else if (cached == null) {
-                            emit(Result.Error("Failed to load details: ${response.code()} - ${response.message()}"))
+                            emit(Result.Error("Failed: ${response.code()}"))
                         }
                     } catch (e: Exception) {
                         if (cached == null) {
-                            emit(Result.Error("Failed to load business details", e))
+                            emit(Result.Error("Failed to load details", e))
                         }
                     }
                 }
@@ -123,13 +116,10 @@ class BusinessRepository @Inject constructor(
         }
     }
     
-    // OPTIMISTIC UPDATE: Toggle favorite
     suspend fun toggleFavorite(businessId: String): Result<Unit> {
         return try {
-            // 1. Update local DB immediately
             businessDao.toggleFavorite(businessId)
             
-            // 2. Queue sync
             val business = businessDao.getById(businessId)
             val data = JSONObject().apply {
                 put("isFavorite", business?.isFavorite ?: false)
@@ -147,13 +137,10 @@ class BusinessRepository @Inject constructor(
         }
     }
     
-    // OPTIMISTIC UPDATE: Toggle hidden
     suspend fun toggleHidden(businessId: String): Result<Unit> {
         return try {
-            // 1. Update local DB immediately
             businessDao.toggleHidden(businessId)
             
-            // 2. Queue sync
             val business = businessDao.getById(businessId)
             val data = JSONObject().apply {
                 put("isHidden", business?.isHidden ?: false)
