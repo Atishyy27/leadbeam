@@ -1,3 +1,4 @@
+// feature/map/src/main/java/com/fieldflow/feature/map/ui/MapViewModel.kt
 package com.fieldflow.feature.map.ui
 
 import androidx.lifecycle.ViewModel
@@ -6,16 +7,18 @@ import com.fieldflow.feature.map.domain.model.MapBusinessItem
 import com.google.android.gms.maps.model.LatLngBounds
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted       // FIX: was missing, caused "Unresolved reference"
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine               // FIX: was missing, caused "Unresolved reference"
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
-
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @OptIn(FlowPreview::class)
@@ -24,12 +27,11 @@ class MapViewModel @Inject constructor(
     private val getBusinessesInBoundsUseCase: com.fieldflow.feature.map.domain.usecase.GetBusinessesInBoundsUseCase,
     private val routeDao: com.fieldflow.core.database.dao.RouteDao
 ) : ViewModel() {
-    
-    private var fetchJob: kotlinx.coroutines.Job? = null
-    
-    // 1. Add these variables to hold our raw data and filter states
+
+    private var fetchJob: Job? = null
+
     private val _rawBusinesses = MutableStateFlow<List<MapBusinessItem>>(emptyList())
-    
+
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
@@ -42,37 +44,60 @@ class MapViewModel @Inject constructor(
     private val _isOffline = MutableStateFlow(false)
     val isOffline: StateFlow<Boolean> = _isOffline.asStateFlow()
 
-    // 2. THIS IS THE MAGIC: It automatically filters whenever data, search, or category changes!
-    val visibleBusinesses: StateFlow<List<MapBusinessItem>> = kotlinx.coroutines.flow.combine(
+    val visibleBusinesses: StateFlow<List<MapBusinessItem>> = combine(
         _rawBusinesses,
         _searchQuery,
         _selectedCategory
-    ) { businesses, query, category ->
-        businesses.filter { business ->
-            val matchesCategory = category == null || business.category == category
-            val matchesSearch = query.isBlank() || business.businessName.contains(query, ignoreCase = true)
-            matchesCategory && matchesSearch
-        }
-    }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), emptyList())
+    ) { rawBusinesses, query, category ->
+        var filtered = rawBusinesses
 
-    // 3. Update your fetch function to save to _rawBusinesses instead of _visibleBusinesses
+        // FIX: Case-insensitive + partial match
+        // Handles API mismatches like "Restaurant" vs "restaurants" vs "food_and_drink"
+        if (category != null && category.isNotBlank()) {
+            filtered = filtered.filter { business ->
+                business.category.equals(category, ignoreCase = true) ||
+                business.category.contains(category, ignoreCase = true)
+            }
+        }
+
+        if (query.isNotBlank()) {
+            filtered = filtered.filter { business ->
+                business.businessName.contains(query, ignoreCase = true) ||
+                business.category.contains(query, ignoreCase = true)
+            }
+        }
+
+        filtered
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
+
+    private val categoryGroupMapping = mapOf(
+        "Restaurant" to "food_and_drink", // Note: match whatever the mock API actually sends
+        "Retail" to "retail_and_shopping", 
+        "Service" to "home_services",
+        "Healthcare" to "health_and_medical"
+    )
+
     private fun fetchBusinessesInBounds(bounds: LatLngBounds) {
         fetchJob?.cancel()
         fetchJob = viewModelScope.launch {
             _isLoading.value = true
             try {
-                getBusinessesInBoundsUseCase(bounds).collect { businesses ->
-                    // Explicit diagnostic trace to check parsing success
-                    println("FIELDFLOW_DEBUG: UseCase collected ${businesses.size} items")
+                val categoryGroup = _selectedCategory.value?.let { categoryGroupMapping[it] }
+                getBusinessesInBoundsUseCase(bounds, categoryGroup).collect { businesses ->
+                    println("FIELDFLOW_DEBUG: Fetched ${businesses.size} businesses")
                     if (businesses.isNotEmpty()) {
-                        println("FIELDFLOW_DEBUG: Sample item name = ${businesses.first().businessName}")
+                        val uniqueCategories = businesses.map { it.category }.distinct()
+                        println("FIELDFLOW_DEBUG: Unique categories = $uniqueCategories")
                     }
-                    
                     _rawBusinesses.value = businesses
-                    _isOffline.value = false // Success means we are online
+                    _isOffline.value = false
                 }
             } catch (e: Exception) {
-                println("FIELDFLOW_DEBUG: Exception inside collection block: ${e.message}")
+                println("FIELDFLOW_DEBUG: Fetch failed: ${e.message}")
                 _isOffline.value = true
             } finally {
                 _isLoading.value = false
@@ -80,9 +105,14 @@ class MapViewModel @Inject constructor(
         }
     }
 
-    // 4. Add the UI Event Triggers
-    fun updateSearchQuery(query: String) { _searchQuery.value = query }
-    fun updateCategory(category: String?) { _selectedCategory.value = category }
+    fun updateSearchQuery(query: String) {
+        _searchQuery.value = query
+    }
+
+    // FIX: Tapping the selected chip again clears the filter
+    fun updateCategory(category: String?) {
+        _selectedCategory.value = if (category == _selectedCategory.value) null else category
+    }
 
     private val cameraBoundsFlow = MutableStateFlow<LatLngBounds?>(null)
 
@@ -92,13 +122,9 @@ class MapViewModel @Inject constructor(
 
     private fun setupDebouncedBoundsObserver() {
         cameraBoundsFlow
-            .debounce(300L) // 📍 300ms debounce prevents API hammering during map drag
+            .debounce(300L)
             .distinctUntilChanged()
-            .onEach { bounds ->
-                if (bounds != null) {
-                    fetchBusinessesInBounds(bounds)
-                }
-            }
+            .onEach { bounds -> if (bounds != null) fetchBusinessesInBounds(bounds) }
             .launchIn(viewModelScope)
     }
 
@@ -109,14 +135,14 @@ class MapViewModel @Inject constructor(
     fun addBusinessToRoute(business: MapBusinessItem) {
         viewModelScope.launch {
             try {
-                // 1. Get Active Route Entity synchronously via suspend function
                 val activeRoute = routeDao.getActiveRouteEntity()
                 val activeRouteId = if (activeRoute == null) {
                     val routeId = "route_${System.currentTimeMillis()}"
                     val newRoute = com.fieldflow.core.database.entity.RouteEntity(
                         id = routeId,
                         name = "Today's Route",
-                        date = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date()),
+                        date = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
+                            .format(java.util.Date()),
                         status = "active",
                         isActive = true,
                         createdAt = System.currentTimeMillis()
@@ -127,10 +153,8 @@ class MapViewModel @Inject constructor(
                     activeRoute.id
                 }
 
-                // 2. Fetch the stop count using the extracted String ID
                 val stopCount = routeDao.getStopCountForRoute(activeRouteId)
 
-                // 3. Construct RouteStopEntity to match your exact columns (String id, no lat/long/name fields)
                 val stop = com.fieldflow.core.database.entity.RouteStopEntity(
                     id = "stop_${System.currentTimeMillis()}",
                     routeId = activeRouteId,
@@ -144,10 +168,9 @@ class MapViewModel @Inject constructor(
                     notes = null
                 )
                 routeDao.insertRouteStop(stop)
-
-                println("MATRIX MODE: Successfully saved stop to DB")
+                println("FIELDFLOW_DEBUG: Added '${business.businessName}' to route $activeRouteId")
             } catch (e: Exception) {
-                println("MATRIX MODE ERROR saving to route: ${e.message}")
+                println("FIELDFLOW_DEBUG: Error adding to route: ${e.message}")
             }
         }
     }

@@ -5,5 +5,9 @@ import com.google.android.gms.maps.model.LatLngBounds
 import kotlinx.coroutines.flow.Flow
 
 interface BusinessRepository {
-    fun getBusinessesInBounds(bounds: LatLngBounds): Flow<List<BusinessEntity>>
+    // Add categoryGroup: String? = null here
+    fun getBusinessesInBounds(
+        bounds: LatLngBounds, 
+        categoryGroup: String? = null
+    ): Flow<List<BusinessEntity>>
 }

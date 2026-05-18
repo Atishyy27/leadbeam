@@ -65,6 +65,20 @@ interface BusinessDao {
         maxLongGrid: Int
     ): List<BusinessEntity>
     
+    @Query("""
+        SELECT * FROM businesses 
+        WHERE lat_grid BETWEEN :minLatGrid AND :maxLatGrid 
+        AND long_grid BETWEEN :minLongGrid AND :maxLongGrid
+        AND (:categoryGroup IS NULL OR category_group = :categoryGroup)
+    """)
+    suspend fun getBusinessesInGridWithFilter(
+        minLatGrid: Int,
+        maxLatGrid: Int,
+        minLongGrid: Int,
+        maxLongGrid: Int,
+        categoryGroup: String? = null
+    ): List<BusinessEntity>
+    
     // --- FAVORITES & HIDDEN ---
     
     @Query("SELECT * FROM businesses WHERE is_favorite = 1 AND is_hidden = 0 ORDER BY name ASC")

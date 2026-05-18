@@ -45,6 +45,7 @@ dependencies {
     
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
+    implementation("com.google.maps.android:android-maps-utils:3.8.2")
     
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
