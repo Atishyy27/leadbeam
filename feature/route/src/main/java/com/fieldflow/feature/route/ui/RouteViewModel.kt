@@ -25,10 +25,12 @@ class RouteViewModel @Inject constructor(
 
     private fun loadActiveRoute() {
         viewModelScope.launch {
-            val activeRoute = routeDao.getActiveRoute()
+            // Use the synchronous database entity accessor function
+            val activeRoute = routeDao.getActiveRouteEntity() 
             if (activeRoute != null) {
-                // Fetch the stops for this route
-                _routeStops.value = routeDao.getStopsForRoute(activeRoute.id) 
+                routeDao.getStopsForRoute(activeRoute.id).collect { stops ->
+                    _routeStops.value = stops
+                }
             }
         }
     }

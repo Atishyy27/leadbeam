@@ -3,8 +3,8 @@ package com.fieldflow.feature.route.data.repository
 
 import com.fieldflow.core.database.dao.BusinessDao
 import com.fieldflow.core.database.dao.RouteDao
-import com.fieldflow.core.database.entities.RouteEntity
-import com.fieldflow.core.database.entities.RouteStopEntity
+import com.fieldflow.core.database.entity.RouteEntity
+import com.fieldflow.core.database.entity.RouteStopEntity
 import com.fieldflow.core.network.api.ApiService
 import com.fieldflow.core.sync.SyncManager
 import com.fieldflow.feature.business.data.mapper.toDomain
@@ -54,16 +54,20 @@ class RouteRepository @Inject constructor(
         )
         
         val stops = businessIds.mapIndexed { index, businessId ->
-            val business = businessDao.getById(businessId)
+            val business = businessDao.getById(businessId) 
+                ?: throw IllegalArgumentException("Business $businessId not found")
+            
             RouteStopEntity(
-                id = "stop_${UUID.randomUUID()}", // Client-side UUID for offline sync safety
+                id = "stop_${UUID.randomUUID()}",
                 routeId = routeId,
                 businessId = businessId,
-                businessName = business?.name ?: "Unknown Business",
-                lat = business?.lat ?: 0.0,
-                long = business?.long ?: 0.0,
+                businessName = business.name,      // ✅ Added
+                lat = business.lat,                 // ✅ Added
+                long = business.long,               // ✅ Added
                 orderIndex = index,
-                isVisited = false
+                isVisited = false,
+                visitedAt = null,
+                notes = null
             )
         }
         

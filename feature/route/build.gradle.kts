@@ -28,10 +28,24 @@ android {
 }
 
 dependencies {
+    implementation(project(":core:network"))
+    implementation(project(":core:database"))
+    implementation(project(":core:sync"))
+    implementation(project(":feature:business")) // Needed for BusinessDetail models
+
+    // Network & Lifecycle tooling classpaths
+
+    implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.google.maps.android:maps-compose:4.3.3")
+    implementation("com.google.android.gms:play-services-maps:18.2.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
+    implementation("androidx.compose.material:material-icons-extended")
+
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
     implementation(libs.androidx.material3)
-
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 }

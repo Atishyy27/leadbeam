@@ -16,6 +16,16 @@ object RouteModule {
     @Provides
     @Singleton
     fun provideRouteRepository(
-        routeDao: RouteDao
-    ): RouteRepository = RouteRepository(routeDao)
+        routeDao: com.fieldflow.core.database.dao.RouteDao,
+        businessDao: com.fieldflow.core.database.dao.BusinessDao,
+        apiService: com.fieldflow.core.network.api.ApiService,
+        syncManager: com.fieldflow.core.sync.SyncManager
+    ): com.fieldflow.feature.route.data.repository.RouteRepository {
+        return com.fieldflow.feature.route.data.repository.RouteRepository(
+            routeDao = routeDao,
+            businessDao = businessDao,
+            apiService = apiService,
+            syncManager = syncManager
+        )
+    }
 }
