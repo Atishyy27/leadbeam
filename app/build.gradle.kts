@@ -1,13 +1,13 @@
 // app/build.gradle.kts
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.hilt)
     alias(libs.plugins.ksp)
 }
-
-import java.util.Properties
-import java.io.FileInputStream
 
 val localProperties = Properties()
 val localPropertiesFile = rootProject.file("local.properties")
@@ -31,7 +31,7 @@ android {
 
     buildTypes {
         debug {
-            buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:3000/api/\"")
+            buildConfigField("String", "BASE_URL", "\"http://localhost:3000/api/\"")
         }
         release {
             buildConfigField("String", "BASE_URL", "\"https://api.fieldflow.com/v1/\"")
@@ -70,8 +70,9 @@ dependencies {
     // Core Infra
     implementation(project(":core:common"))
     implementation(project(":core:ui"))
-    implementation(project(":core:network"))
+    implementation(project(":core:sync"))
     implementation(project(":core:database"))
+    implementation(project(":core:network"))
     implementation(project(":core:datastore"))
 
     // Compose Foundation
@@ -90,4 +91,6 @@ dependencies {
     implementation("androidx.work:work-runtime-ktx:2.9.0")
     implementation("androidx.hilt:hilt-work:1.1.0")
     ksp("androidx.hilt:hilt-compiler:1.1.0")
+
+    implementation("androidx.compose.material:material-icons-extended")
 }

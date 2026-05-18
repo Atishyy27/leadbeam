@@ -15,6 +15,7 @@ import com.fieldflow.feature.route.ui.detail.RouteDetailScreen
 import com.fieldflow.feature.route.ui.execution.RouteExecutionScreen
 import com.fieldflow.feature.route.ui.list.RoutesListScreen
 import com.fieldflow.feature.map.ui.MapScreen
+import androidx.hilt.navigation.compose.hiltViewModel
 
 sealed class Screen(val route: String) {
     object Login : Screen("login")
@@ -43,7 +44,8 @@ fun FieldFlowNavHost(
         // --- AUTH ---
         composable(Screen.Login.route) {
             LoginScreen(
-                onLoginSuccess = {
+                viewModel = hiltViewModel(),  // ✅ Added
+                onLoginSuccessNavigation = {
                     navController.navigate(Screen.Map.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
@@ -54,15 +56,14 @@ fun FieldFlowNavHost(
         // --- MAP ---
         composable(Screen.Map.route) {
             MapScreen(
-                onBusinessClick = { businessId ->
-                    navController.navigate(Screen.BusinessDetail.createRoute(businessId))
-                },
-                onNavigateToList = {
+                viewModel = hiltViewModel(),  // ✅ Added
+                onNavigateToList = {  // ✅ Fixed parameter name
                     navController.navigate(Screen.BusinessList.route)
                 },
-                onNavigateToRoutes = {
-                    navController.navigate(Screen.RoutesList.route)
+                onBusinessClick = { businessId ->
+                    navController.navigate(Screen.BusinessDetail.createRoute(businessId))
                 }
+                // ✅ Removed onNavigateToRoutes - doesn't exist on MapScreen
             )
         }
         
@@ -93,7 +94,6 @@ fun FieldFlowNavHost(
                     navController.navigate(Screen.CreateRoute.route)
                 },
                 onRouteClick = { routeId ->
-                    // Now correctly navigates to RouteDetailScreen
                     navController.navigate(Screen.RouteDetail.createRoute(routeId)) 
                 }
             )

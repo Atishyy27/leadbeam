@@ -30,7 +30,7 @@ import com.fieldflow.feature.auth.domain.usecase.CheckSessionUseCase
 import com.fieldflow.navigation.FieldFlowNavHost
 import com.fieldflow.navigation.Screen
 import com.fieldflow.ui.components.OfflineBanner
-import com.fieldflow.ui.theme.FieldFlowTheme
+import com.fieldflow.core.ui.theme.FieldFlowTheme
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
