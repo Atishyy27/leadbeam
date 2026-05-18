@@ -2,7 +2,7 @@
 package com.fieldflow.core.database.dao
 
 import androidx.room.*
-import com.fieldflow.core.database.entities.SyncQueueEntity
+import com.fieldflow.core.database.entity.SyncQueueEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao

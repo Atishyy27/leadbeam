@@ -2,7 +2,7 @@
 package com.fieldflow.core.database.dao
 
 import androidx.room.*
-import com.fieldflow.core.database.entities.BusinessEntity
+import com.fieldflow.core.database.entity.BusinessEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao

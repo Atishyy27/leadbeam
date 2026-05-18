@@ -39,6 +39,15 @@ data class RouteStopEntity(
     @ColumnInfo(name = "business_id")
     val businessId: String,
     
+    @ColumnInfo(name = "business_name")
+    val businessName: String,
+    
+    @ColumnInfo(name = "lat")
+    val lat: Double,
+    
+    @ColumnInfo(name = "long")
+    val long: Double,
+    
     @ColumnInfo(name = "order_index")
     val orderIndex: Int,
     

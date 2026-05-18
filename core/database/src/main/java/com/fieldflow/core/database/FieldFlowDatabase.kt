@@ -10,12 +10,12 @@ import com.fieldflow.core.database.dao.CategoryDao
 import com.fieldflow.core.database.dao.RouteDao
 import com.fieldflow.core.database.dao.UserDao
 import com.fieldflow.core.database.dao.SyncQueueDao
-import com.fieldflow.core.database.entities.BusinessEntity
-import com.fieldflow.core.database.entities.CategoryEntity
-import com.fieldflow.core.database.entities.RouteEntity
-import com.fieldflow.core.database.entities.RouteStopEntity
-import com.fieldflow.core.database.entities.SyncQueueEntity
-import com.fieldflow.core.database.entities.UserEntity
+import com.fieldflow.core.database.entity.BusinessEntity
+import com.fieldflow.core.database.entity.CategoryEntity
+import com.fieldflow.core.database.entity.RouteEntity
+import com.fieldflow.core.database.entity.RouteStopEntity
+import com.fieldflow.core.database.entity.SyncQueueEntity
+import com.fieldflow.core.database.entity.UserEntity
 
 @Database(
     entities = [
