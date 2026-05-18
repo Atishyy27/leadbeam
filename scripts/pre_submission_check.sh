@@ -13,7 +13,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-echo "✅ Build successful"
+echo "Build successful"
 
 # Test check
 echo "✓ Running tests..."
@@ -22,7 +22,7 @@ echo "✓ Running tests..."
 if [ $? -ne 0 ]; then
     echo "⚠️  Some tests failed"
 else
-    echo "✅ All tests passed"
+    echo "All tests passed"
 fi
 
 # Lint check

@@ -92,5 +92,6 @@ dependencies {
     implementation("androidx.hilt:hilt-work:1.1.0")
     ksp("androidx.hilt:hilt-compiler:1.1.0")
 
+    implementation("com.google.maps.android:android-maps-utils:3.8.2")
     implementation("androidx.compose.material:material-icons-extended")
 }
