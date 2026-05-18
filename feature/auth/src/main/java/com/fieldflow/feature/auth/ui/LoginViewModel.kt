@@ -17,8 +17,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val loginUseCase: LoginUseCase
-    private val authRepository: com.fieldflow.feature.auth.domain.repository.AuthRepository // Add this
+    private val loginUseCase: LoginUseCase,
+    private val authRepository: com.fieldflow.feature.auth.domain.repository.AuthRepository
 ) : ViewModel() {
 
     var emailInput by mutableStateOf("")

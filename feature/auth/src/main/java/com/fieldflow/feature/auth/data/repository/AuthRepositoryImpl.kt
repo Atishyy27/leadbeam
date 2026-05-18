@@ -30,15 +30,15 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun login(email: String, password: String): Result<User> {
         return try {
             val response = apiService.login(LoginRequest(email, password))
-            val apiResponse = response.body() // ✅ Get the ApiResponse wrapper
-            val tokenData = apiResponse?.data // ✅ Now access .data
+            val apiResponse = response.body() // Get the ApiResponse wrapper
+            val tokenData = apiResponse?.data // Now access .data
 
             if (apiResponse?.status == 200 && tokenData != null) {
                 preferencesManager.saveTokens(tokenData.accessToken, tokenData.refreshToken)
 
                 val profileResponse = apiService.getUserProfile()
-                val profileApiResponse = profileResponse.body() // ✅ Get ApiResponse
-                val profile = profileApiResponse?.data // ✅ Access .data
+                val profileApiResponse = profileResponse.body() // Get ApiResponse
+                val profile = profileApiResponse?.data // Access .data
 
                 if (profileApiResponse?.status == 200 && profile != null) {
                     val userEntity = UserEntity(
